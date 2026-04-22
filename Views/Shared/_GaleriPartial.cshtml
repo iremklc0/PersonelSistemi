@@ -1,0 +1,71 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@using System.Linq
+@{
+    var uploadKlasoru = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+    var resimUzantilari = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+    var tumDosyalar = System.IO.Directory.Exists(uploadKlasoru)
+        ? new System.IO.DirectoryInfo(uploadKlasoru).GetFiles().OrderByDescending(f => f.CreationTime).ToList()
+        : new List<System.IO.FileInfo>();
+    var resimler = tumDosyalar.Where(d => resimUzantilari.Contains(d.Extension.ToLower())).ToList();
+    var belgeler = tumDosyalar.Where(d => !resimUzantilari.Contains(d.Extension.ToLower())).ToList();
+}
+
+<div id="medya-galeri">
+    @if (resimler.Count > 0)
+    {
+        foreach (var dosya in resimler)
+        {
+            var dosyaUrl = "/uploads/" + dosya.Name;
+            <div class="dosya-kapsayici" style="position: relative; display: inline-block;">
+                <div class="galeri-kutusu bg-light text-center" onclick="dosyaAc('@dosyaUrl', true, '@dosya.Name')" title="@dosya.Name">
+                    <img src="@dosyaUrl" alt="@dosya.Name" />
+                </div>
+                <button type="button" class="button alert mini" style="position: absolute; top: -8px; right: -8px; padding: 0; width: 24px; height: 24px; border-radius: 50%; z-index: 15;" onclick="dosyaSil('@dosya.Name', event)" title="Sil">
+                    <span class="mif-cross"></span>
+                </button>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="text-muted w-100 text-center mt-5"><i>Galeride henüz resim bulunmuyor.</i></p>
+    }
+</div>
+
+<div id="belge-galeri">
+    @if (belgeler.Count > 0)
+    {
+        foreach (var dosya in belgeler)
+        {
+            var dosyaUrl = "/uploads/" + dosya.Name;
+            var uzanti = dosya.Extension.ToLower();
+
+            string ikonSinifi = "mif-file-empty"; string renkSinifi = "fg-gray";
+            if (uzanti == ".pdf") { ikonSinifi = "mif-file-pdf"; renkSinifi = "fg-red"; }
+            else if (uzanti == ".doc" || uzanti == ".docx") { ikonSinifi = "mif-file-word"; renkSinifi = "fg-blue"; }
+            else if (uzanti == ".xls" || uzanti == ".xlsx") { ikonSinifi = "mif-file-excel"; renkSinifi = "fg-green"; }
+            else if (uzanti == ".mp4" || uzanti == ".avi") { ikonSinifi = "mif-file-play"; renkSinifi = "fg-cyan"; }
+            else if (uzanti == ".zip" || uzanti == ".rar") { ikonSinifi = "mif-file-archive"; renkSinifi = "fg-brown"; }
+
+            <div class="dosya-kapsayici" style="position: relative; display: inline-block;">
+                <div class="galeri-kutusu bg-light text-center" onclick="dosyaAc('@dosyaUrl', false, '@dosya.Name')" title="@dosya.Name">
+                    <div class="d-flex flex-column flex-justify-center h-100 @renkSinifi">
+                        <span class="@ikonSinifi mif-3x"></span>
+                        <span class="text-small mt-2 text-truncate" style="padding: 0 5px;">@dosya.Extension</span>
+                    </div>
+                </div>
+                <button type="button" class="button alert mini" style="position: absolute; top: -8px; right: -8px; padding: 0; width: 24px; height: 24px; border-radius: 50%; z-index: 15;" onclick="dosyaSil('@dosya.Name', event)" title="Sil">
+                    <span class="mif-cross"></span>
+                </button>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="text-muted w-100 text-center mt-5"><i>Sistemde henüz belge bulunmuyor.</i></p>
+    }
+</div>

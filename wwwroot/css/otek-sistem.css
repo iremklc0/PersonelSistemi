@@ -1,0 +1,85 @@
+:root {
+    --tema-arkaplan: #343a40;
+    --tema-yazi: #ffffff;
+    --tema-vurgu: #1d2124;
+}
+
+.dinamik-tema-arkaplan, 
+.window .window-caption,
+.kendi-panelimiz { 
+    background-color: var(--tema-arkaplan) !important; 
+    color: var(--tema-yazi) !important;
+    transition: background-color 0.3s ease, color 0.3s ease; 
+}
+
+.window .window-caption .title,
+.window .window-caption .window-action,
+.dinamik-tema-arkaplan > a,
+.dinamik-tema-arkaplan > ul > li > a,
+.kendi-panelimiz h3 {
+    color: var(--tema-yazi) !important;
+}
+
+body { background-color: #f8f8f8; overflow-x: hidden; margin: 0; }
+.ana-icerik { margin-top: 60px; padding: 20px; }
+.window .window-content { padding: 0 !important; overflow: hidden !important; }
+
+.kendi-panelimiz {
+    position: fixed; top: 52px !important; left: -320px; width: 300px;
+    height: calc(100% - 52px) !important;
+    background-color: var(--tema-arkaplan) !important;
+    z-index: 9999;
+    transition: left 0.3s ease, background-color 0.3s ease;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+}
+.kendi-panelimiz.open { left: 0; }
+.panel-golgesi { position: fixed; top: 52px; left: 0; width: 100vw; height: calc(100% - 52px); background-color: rgba(0,0,0,0.6); z-index: 9998; display: none; }
+.panel-golgesi.open { display: block; }
+.profil-link { display: flex; align-items: center; padding: 12px 20px; color: white; text-decoration: none; border-radius: 8px; transition: background 0.2s; margin-bottom: 5px; }
+.profil-link:hover { background-color: rgba(255,255,255,0.1); color: white; }
+.profil-link.cikis { color: #ff5252; }
+.profil-link.cikis:hover { background-color: #3b1c1c; color: #ff5252; }
+
+/* Ana Sayfa ve diğer menüler aynı rengini kullansın */
+.aktif-menu { 
+    background-color: var(--tema-vurgu) !important; 
+    color: var(--tema-yazi) !important; 
+}
+.dinamik-kirmizi:hover,
+.app-bar-item:hover,
+.app-bar-menu > li > a:hover { 
+    background-color: var(--tema-vurgu) !important; 
+    color: var(--tema-yazi) !important; 
+}
+.dinamik-tema-arkaplan { background-color: var(--tema-arkaplan) !important; transition: background-color 0.3s ease; }
+
+.galeri-kutusu { width: 110px; height: 110px; border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.2s; border: 2px solid transparent; flex-shrink: 0; }
+.galeri-kutusu:hover { transform: scale(1.05); border-color: #00A6EA; z-index: 10; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+.galeri-kutusu img { width: 100%; height: 100%; object-fit: cover; }
+.medya-pencere-icerik { padding: 15px; }
+.medya-pencere-icerik .galeri-alani { display: flex; flex-wrap: wrap; gap: 15px; max-height: 350px; overflow-y: auto; padding-bottom: 10px; }
+.app-bar-menu > li:hover > .d-menu { display: block !important; top: 100%; }
+.menuler-sabit .app-bar-menu > li > .d-menu { display: block !important; top: 100%; }
+
+#gorsel-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 999999; align-items: center; justify-content: center; cursor: pointer; }
+#gorsel-overlay.acik { display: flex; }
+#gorsel-overlay img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 8px; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
+#gorsel-overlay-kapat { position: fixed; top: 20px; right: 30px; color: white; font-size: 40px; cursor: pointer; z-index: 1000000; line-height: 1; font-weight: bold; }
+#gorsel-overlay-kapat:hover { color: #ff5252; }
+#gorsel-overlay-sil { position: fixed; top: 20px; right: 80px; font-size: 24px; cursor: pointer; z-index: 1000000; }
+.window.maximized { z-index: 999999 !important; }
+
+.iframe-kapsayici { position: relative; width: 100%; height: 560px; }
+.iframe-kapsayici iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: block; }
+.iframe-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; background: transparent; cursor: pointer; display: none; }
+
+.kendi-panelimiz, 
+.kendi-panelimiz h3, 
+.kendi-panelimiz span, 
+.kendi-panelimiz p, 
+.kendi-panelimiz a,
+.kendi-panelimiz .mif-user,
+.kendi-panelimiz .mif-key,
+.kendi-panelimiz .mif-exit {
+    color: var(--tema-yazi) !important;
+}

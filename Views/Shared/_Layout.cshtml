@@ -1,0 +1,542 @@
+﻿@using System.Linq
+<!DOCTYPE html>
+<html lang="tr" class="dark-side">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Otek Modüler Sistem</title>
+    <link rel="stylesheet" href="https://cdn.metroui.org.ua/v4.3.2/css/metro-all.min.css" />
+    <link rel="stylesheet" href="~/css/otek-sistem.css" />
+    <style>
+        html body .button.primary,
+        html body .button.success,
+        html body .button.warning,
+        html body .button.alert,
+        html body .button.secondary,
+        html body .button.info {
+            background-color: var(--tema-arkaplan) !important;
+            border-color: var(--tema-arkaplan) !important;
+            color: var(--tema-yazi) !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        html body .button:hover {
+            background-color: var(--tema-vurgu) !important;
+            border-color: var(--tema-vurgu) !important;
+            opacity: 1 !important;
+        }
+
+        .galeri-alani {
+            padding-top: 15px !important;
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div data-role="appbar" data-expand-point="md" class="dinamik-tema-arkaplan " style="z-index: 10000;">
+        <a href="#" class="brand dinamik-kirmizi menuler-tiklama " onclick="toggleKendiPanelimiz(); return false;" style="width: 80px; text-align: center; justify-content: center; cursor: pointer;">
+            <b>OTEK</b>
+        </a>
+        <a href="/Home/Index" class="app-bar-item dinamik-kirmizi menuler-tiklama aktif-menu">
+            <span class="name text-upper">Ana Sayfa</span>
+        </a>
+
+        <ul class="app-bar-menu">
+            <li>
+                <a href="javascript:void(0)" class="dropdown-toggle">Modüler Sistem</a>
+                <ul class="d-menu">
+                    <li><a href="#" onclick="medyaPenceresiAc(); return false;">Medya </a></li>
+                    <li><a href="#" onclick="belgePenceresiAc(); return false;">Belge Yönetimi</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="javascript:void(0)" class="dropdown-toggle">Personel Yönetimi</a>
+                <ul class="d-menu">
+                    <li><a href="#" onclick="kutuAc('A Personelleri', '/Personel/Index'); return false;">A Personelleri</a></li>
+                    <li><a href="#" onclick="kutuAc('B Personelleri', '/BPersonel/Index'); return false;">B Personelleri</a></li>
+                </ul>
+            </li>
+        </ul>
+
+        <a href="#" id="pinButton" class="app-bar-item ml-auto" onclick="paneliSabitle(); return false;" title="Sabitle">
+            <span class="mif-pin"></span>
+        </a>
+    </div>
+
+    <div id="arka-plan-golgesi" class="panel-golgesi" onclick="toggleKendiPanelimiz()"></div>
+    <div id="sol-profil-menusu" class="kendi-panelimiz ">
+        <div class="text-center mt-5 mb-4">
+            <span class="mif-user mif-5x fg-cyan"></span>
+            <h3 class="mt-2 text-light mb-0">İrem</h3>
+            <span class="fg-gray">Admin Profili</span>
+        </div>
+        <hr class="bg-gray" style="margin: 0 20px 20px 20px;">
+
+        <div style="padding: 0 15px;">
+            <p class="text-small fg-gray mb-2 pl-3" style="font-weight: bold;">Sistem Teması</p>
+            <div class="d-flex flex-row align-items-center mb-4 pl-3" style="gap: 15px;">
+                <input type="color" id="tema-renk-secici" value="#343a40" style="width: 45px; height: 40px; border: 2px solid #555; cursor: pointer; border-radius: 5px; padding: 0; background: transparent;" onchange="temaDegistir(this.value)" title="Renk Seç">
+                <button class="button small alert outline" onclick="temayiSifirla()">Varsayılana Dön</button>
+            </div>
+
+            <a href="#" onclick="sifreDegistirAc(); return false;" class="profil-link mt-2">
+                <span class="mif-key mif-lg mr-4"></span> Şifre Değiştir
+            </a>
+            <a href="/Login/CikisYap" class="profil-link cikis">
+                <span class="mif-exit mif-lg mr-4"></span> Çıkış Yap
+            </a>
+        </div>
+    </div>
+
+    <div class="ana-icerik">
+        <main role="main">@RenderBody()</main>
+    </div>
+
+    <div id="gorsel-overlay" onclick="gorselKapat()">
+        <span id="gorsel-overlay-kapat" onclick="gorselKapat()">&#x2715;</span>
+        <button type="button" id="gorsel-overlay-sil" class="button alert" onclick="dosyaSil(this.getAttribute('data-dosya'), event)">
+            <span class="mif-bin"></span> Sil
+        </button>
+        <img id="gorsel-overlay-img" src="" alt="Önizleme" onclick="event.stopPropagation()" />
+    </div>
+
+    <div id="medya-icerik-sablonu" style="display:none;">
+        <div class="medya-pencere-icerik">
+            <div class="row">
+                <div class="cell-md-4" style="border-right: 1px solid #eee; padding-right: 20px;">
+                    <h5 class="mt-0">Yeni Resim Yükle</h5>
+                    <p class="text-small fg-gray">Sadece fotoğraf (.jpg, .png) dosyalarınızı buradan yükleyebilirsiniz.</p>
+                    <form class="dosya-yukle-form" action="/Medya/DosyaYukle" method="post" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <input type="file" name="yuklenenDosyalar" multiple accept=".jpg,.jpeg,.png,.gif">
+                        </div>
+                        <div class="form-group mt-4">
+                            <button type="submit" class="button success w-100">
+                                <span class="mif-upload"></span> Sisteme Yükle
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="cell-md-8" style="padding-left: 20px;">
+                    <div class="belge-liste-alani">
+                        <h5 class="mt-0">Sistemdeki Fotoğraflar</h5>
+                        <div class="galeri-alani mt-4">
+                            @{
+                                var uploadKlasoru = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                                if (System.IO.Directory.Exists(uploadKlasoru))
+                                {
+                                    var tumDosyalar = new System.IO.DirectoryInfo(uploadKlasoru).GetFiles().OrderByDescending(f => f.CreationTime).ToList();
+                                    var resimler = tumDosyalar.Where(d => d.Extension.ToLower() == ".jpg" || d.Extension.ToLower() == ".jpeg" || d.Extension.ToLower() == ".png" || d.Extension.ToLower() == ".gif").ToList();
+
+                                    if (resimler.Count > 0)
+                                    {
+                                        foreach (var dosya in resimler)
+                                        {
+                                            var dosyaUrl = "/uploads/" + dosya.Name;
+                                            <div class="dosya-kapsayici" style="position: relative; display: inline-block;">
+                                                <div class="galeri-kutusu bg-light text-center" onclick="dosyaAc('@dosyaUrl', true, '@dosya.Name')" title="@dosya.Name">
+                                                    <img src="@dosyaUrl" alt="@dosya.Name" />
+                                                </div>
+                                                <button type="button" class="button alert mini" style="position: absolute; top: -8px; right: -8px; padding: 0; width: 24px; height: 24px; border-radius: 50%; z-index: 15;" onclick="dosyaSil('@dosya.Name', event)" title="Sil">
+                                                    <span class="mif-cross"></span>
+                                                </button>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted w-100 text-center mt-5"><i>Galeride henüz resim bulunmuyor.</i></p>
+                                    }
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="belge-icerik-sablonu" style="display:none;">
+        <div class="medya-pencere-icerik">
+            <div class="row">
+                <div class="cell-md-4" style="border-right: 1px solid #eee; padding-right: 20px;">
+                    <h5 class="mt-0">Yeni Belge Yükle</h5>
+                    <p class="text-small fg-gray">PDF, Word, Excel ve diğer belge formatlarını buradan yükleyebilirsiniz.</p>
+                    <form class="dosya-yukle-form" action="/Medya/DosyaYukle" method="post" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <input type="file" name="yuklenenDosyalar" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.mp4">
+                        </div>
+                        <div class="form-group mt-4">
+                            <button type="submit" class="button primary w-100">
+                                <span class="mif-upload"></span> Sisteme Yükle
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="cell-md-8" style="padding-left: 20px;">
+
+                    <div class="belge-liste-alani">
+                        <h5 class="mt-0">Sistemdeki Belgeler</h5>
+                        <div class="galeri-alani mt-4">
+                            @{
+                                if (System.IO.Directory.Exists(uploadKlasoru))
+                                {
+                                    var tumDosyalar2 = new System.IO.DirectoryInfo(uploadKlasoru).GetFiles().OrderByDescending(f => f.CreationTime).ToList();
+                                    var belgeler = tumDosyalar2.Where(d => d.Extension.ToLower() != ".jpg" && d.Extension.ToLower() != ".jpeg" && d.Extension.ToLower() != ".png" && d.Extension.ToLower() != ".gif").ToList();
+
+                                    if (belgeler.Count > 0)
+                                    {
+                                        foreach (var dosya in belgeler)
+                                        {
+                                            var dosyaUrl = "/uploads/" + dosya.Name;
+                                            var uzanti = dosya.Extension.ToLower();
+
+                                            string ikonSinifi = "mif-file-empty"; string renkSinifi = "fg-gray";
+                                            if (uzanti == ".pdf") { ikonSinifi = "mif-file-pdf"; renkSinifi = "fg-red"; }
+                                            else if (uzanti == ".doc" || uzanti == ".docx") { ikonSinifi = "mif-file-word"; renkSinifi = "fg-blue"; }
+                                            else if (uzanti == ".xls" || uzanti == ".xlsx") { ikonSinifi = "mif-file-excel"; renkSinifi = "fg-green"; }
+                                            else if (uzanti == ".mp4" || uzanti == ".avi") { ikonSinifi = "mif-file-play"; renkSinifi = "fg-cyan"; }
+                                            else if (uzanti == ".zip" || uzanti == ".rar") { ikonSinifi = "mif-file-archive"; renkSinifi = "fg-brown"; }
+
+                                            <div class="dosya-kapsayici" style="position: relative; display: inline-block;">
+                                                <div class="galeri-kutusu bg-light text-center" onclick="dosyaAc('@dosyaUrl', false, '@dosya.Name')" title="@dosya.Name">
+                                                    <div class="d-flex flex-column flex-justify-center h-100 @renkSinifi">
+                                                        <span class="@ikonSinifi mif-3x"></span>
+                                                        <span class="text-small mt-2 text-truncate" style="padding: 0 5px;">@dosya.Extension</span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="button alert mini" style="position: absolute; top: -8px; right: -8px; padding: 0; width: 24px; height: 24px; border-radius: 50%; z-index: 15;" onclick="dosyaSil('@dosya.Name', event)" title="Sil">
+                                                    <span class="mif-cross"></span>
+                                                </button>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted w-100 text-center mt-5"><i>Sistemde henüz belge bulunmuyor.</i></p>
+                                    }
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="belge-onizleme-alani" style="display:none; flex-direction: column;">
+                        <div class="d-flex flex-align-center mb-3">
+                            <button class="button secondary outline rounded small mr-3" onclick="onizlemeyiKapat(this)">
+                                <span class="mif-arrow-left"></span> Geri
+                            </button>
+                            <h5 class="mt-0 mb-0 text-bold belge-onizleme-baslik"></h5>
+                        </div>
+                        <div class="belge-onizleme-icerik bg-white p-4" style="flex-grow: 1; height: 420px; overflow-y: auto; border: 1px solid #e1e1e1; border-radius: 5px;">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.metroui.org.ua/v4.3.2/js/metro.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
+    <script>
+        var zSayac = 100000;
+        var panelSabitMi = false;
+
+        function pencereOncePlan(winEl) {
+            if ($(winEl).length > 0) { zSayac++; $(winEl).css('z-index', zSayac); }
+        }
+
+        $(document).on('mousedown', '.window', function () { pencereOncePlan(this); });
+        $(document).on('mouseenter', '.window', function () {
+            var buZ = parseInt($(this).css('z-index')) || 0;
+            var enUstZ = 0;
+            $('.window').each(function () {
+                var z = parseInt($(this).css('z-index')) || 0;
+                if (z > enUstZ) enUstZ = z;
+            });
+            if (buZ < enUstZ) { $(this).find('.iframe-overlay').show(); }
+        });
+        $(document).on('mouseleave', '.window', function () { $(this).find('.iframe-overlay').hide(); });
+        $(document).on('mousedown', '.iframe-overlay', function () {
+            pencereOncePlan($(this).closest('.window')[0]); $(this).hide();
+        });
+
+        $(document).ready(function () {
+            var path = window.location.pathname;
+            $('.app-bar-menu a, .app-bar-item').removeClass('aktif-menu');
+            $('.app-bar-menu a, .app-bar-item').each(function() {
+                var href = $(this).attr('href');
+                if(href === path || (path === "/" && href === "/Home/Index")) {
+                    $(this).addClass('aktif-menu');
+                }
+            });
+
+            var kTema = localStorage.getItem('otek_sistem_temasi');
+            var kYazi = localStorage.getItem('otek_sistem_yazi');
+            var kVurgu = localStorage.getItem('otek_sistem_vurgu');
+
+            if (kTema) {
+                document.documentElement.style.setProperty('--tema-arkaplan', kTema);
+                document.documentElement.style.setProperty('--tema-yazi', kYazi);
+                document.documentElement.style.setProperty('--tema-vurgu', kVurgu);
+                $('#tema-renk-secici').val(kTema);
+            }
+
+            $('.menuler-tiklama').on('click', function () {
+                $('.menuler-tiklama').removeClass('aktif-menu');
+                $(this).addClass('aktif-menu');
+            });
+        });
+
+        function getContrastColor(hexcolor) {
+            hexcolor = hexcolor.replace("#", "");
+            var r = parseInt(hexcolor.substr(0, 2), 16), g = parseInt(hexcolor.substr(2, 2), 16), b = parseInt(hexcolor.substr(4, 2), 16);
+            var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            return (yiq >= 128) ? '#000000' : '#ffffff';
+        }
+
+        function renkKoyulastir(hex, lum) {
+            hex = String(hex).replace(/[^0-9a-f]/gi, '');
+            if (hex.length < 6) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+            lum = lum || 0;
+            var rgb = "#", c, i;
+            for (i = 0; i < 3; i++) {
+                c = parseInt(hex.substr(i*2,2), 16);
+                c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
+                rgb += ("00"+c).substr(c.length);
+            }
+            return rgb;
+        }
+
+        function iframeStilEnjekteEt(arkaplan, yazi, vurgu) {
+            $('iframe').each(function() {
+                try {
+                    var $head = $(this).contents().find('head');
+                    if ($head.length > 0) {
+                        $head.find('#dinamik-tema-stili').remove();
+                        var css = '<style id="dinamik-tema-stili">' +
+                            'html body .button:not(.alert), html body .button.primary, html body .button.warning, html body .button.success, html body .button.secondary, html body .button.info { ' +
+                            'background-color: ' + arkaplan + ' !important; border-color: ' + arkaplan + ' !important; color: ' + yazi + ' !important; box-shadow: none !important; outline: none !important; } ' +
+                            'html body .button:not(.alert):hover { background-color: ' + vurgu + ' !important; border-color: ' + vurgu + ' !important; opacity: 1 !important; } ' +
+                            'html body .button.alert { background-color: #ce352c !important; border-color: #ce352c !important; color: #ffffff !important; } ' +
+                            'html body .button.alert:hover { background-color: #9a2620 !important; border-color: #9a2620 !important; }' +
+                            '</style>';
+                        $head.append(css);
+                    }
+                } catch(e) {}
+            });
+        }
+
+        function iframeYuklendi(ifr) {
+            var kTema = localStorage.getItem('otek_sistem_temasi') || '#343a40';
+            var kYazi = localStorage.getItem('otek_sistem_yazi') || '#ffffff';
+            var kVurgu = localStorage.getItem('otek_sistem_vurgu') || '#1d2124';
+            iframeStilEnjekteEt(kTema, kYazi, kVurgu);
+        }
+
+        function temaDegistir(yeniRenk) {
+            var yaziRengi = getContrastColor(yeniRenk);
+            var vurguRengi = renkKoyulastir(yeniRenk, -0.15);
+            document.documentElement.style.setProperty('--tema-arkaplan', yeniRenk);
+            document.documentElement.style.setProperty('--tema-yazi', yaziRengi);
+            document.documentElement.style.setProperty('--tema-vurgu', vurguRengi);
+            localStorage.setItem('otek_sistem_temasi', yeniRenk);
+            localStorage.setItem('otek_sistem_yazi', yaziRengi);
+            localStorage.setItem('otek_sistem_vurgu', vurguRengi);
+            iframeStilEnjekteEt(yeniRenk, yaziRengi, vurguRengi);
+        }
+
+        function temayiSifirla() {
+            var varsayilanArka = '#343a40'; var varsayilanYazi = '#ffffff'; var varsayilanVurgu = '#1d2124';
+            document.documentElement.style.setProperty('--tema-arkaplan', varsayilanArka);
+            document.documentElement.style.setProperty('--tema-yazi', varsayilanYazi);
+            document.documentElement.style.setProperty('--tema-vurgu', varsayilanVurgu);
+            localStorage.removeItem('otek_sistem_temasi'); localStorage.removeItem('otek_sistem_yazi'); localStorage.removeItem('otek_sistem_vurgu');
+            document.getElementById('tema-renk-secici').value = varsayilanArka;
+            iframeStilEnjekteEt(varsayilanArka, varsayilanYazi, varsayilanVurgu);
+        }
+
+        function dosyaAc(url, resimMi, dosyaAdi) {
+            if (resimMi) {
+                document.getElementById('gorsel-overlay-img').src = url;
+                document.getElementById('gorsel-overlay-sil').setAttribute('data-dosya', dosyaAdi);
+                document.getElementById('gorsel-overlay').classList.add('acik');
+                return;
+            }
+            var pencereIcerik = $('.win-belge .window-content');
+            if (pencereIcerik.length === 0) return;
+            var listeAlani = pencereIcerik.find('.belge-liste-alani');
+            var onizlemeAlani = pencereIcerik.find('.belge-onizleme-alani');
+            var baslik = pencereIcerik.find('.belge-onizleme-baslik');
+            var icerik = pencereIcerik.find('.belge-onizleme-icerik');
+            listeAlani.hide();
+            onizlemeAlani.css('display', 'flex');
+            baslik.text(dosyaAdi);
+            icerik.html('<div class="text-center mt-5"><span class="mif-spinner2 ani-spin mif-4x fg-cyan"></span><br><br><b>Belge Hazırlanıyor...</b></div>');
+            var uzanti = dosyaAdi.split('.').pop().toLowerCase();
+            if (uzanti === 'pdf') {
+                icerik.html('<iframe src="' + url + '#toolbar=1" style="width:100%; height:100%; min-height:400px; border:none;"></iframe>');
+            } else if (uzanti === 'doc' || uzanti === 'docx') {
+                fetch(url).then(function(r) { return r.arrayBuffer(); }).then(function(b) {
+                    mammoth.convertToHtml({ arrayBuffer: b }).then(function(res) { icerik.html(res.value); })
+                    .catch(function() { icerik.html("<h4 class='fg-red text-center mt-5'>Belge okunamadı.</h4>"); });
+                });
+            } else {
+                icerik.html("<div class='text-center mt-5'><span class='mif-file-excel mif-5x fg-green mb-4 d-block'></span><h5>Bu format sadece indirilebilir.</h5><a href='" + url + "' download='" + dosyaAdi + "' class='button success mt-2'>Dosyayı İndir</a></div>");
+            }
+        }
+
+        function onizlemeyiKapat(btn) {
+            var pencereIcerik = $(btn).closest('.window-content');
+            pencereIcerik.find('.belge-onizleme-alani').hide();
+            pencereIcerik.find('.belge-onizleme-icerik').html('');
+            pencereIcerik.find('.belge-liste-alani').show();
+        }
+
+        function gorselKapat() { document.getElementById('gorsel-overlay').classList.remove('acik'); document.getElementById('gorsel-overlay-img').src = ''; }
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') gorselKapat(); });
+
+        function kutuAc(pencereBasligi, sayfaLinki) {
+            var ozelSinif = "win-" + pencereBasligi.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+            var mevcut = $('.' + ozelSinif); if (mevcut.length > 0) { pencereOncePlan(mevcut); return; }
+            Metro.window.create({
+                title: pencereBasligi, clsWindow: ozelSinif, shadow: true, draggable: true, resizable: true, maximizable: true, minimizable: true, closable: true,
+                width: 900, height: 600, place: 'center', clsCaption: 'dinamik-tema-arkaplan',
+                content: "<div class='iframe-kapsayici'><iframe src='" + sayfaLinki + "' onload='iframeYuklendi(this)'></iframe><div class='iframe-overlay'></div></div>",
+                onDragStart: function (e, w) { $(w).find('iframe').css('pointer-events', 'none'); $(w).find('.iframe-overlay').show(); },
+                onDragStop: function (e, w) { $(w).find('iframe').css('pointer-events', 'auto'); $(w).find('.iframe-overlay').hide(); },
+                onResizeStart: function (e, w) { $(w).find('iframe').css('pointer-events', 'none'); $(w).find('.iframe-overlay').show(); },
+                onResizeStop: function (e, w) { $(w).find('iframe').css('pointer-events', 'auto'); $(w).find('.iframe-overlay').hide(); $(w).find('.iframe-kapsayici').css('height', ($(w).height() - 40) + 'px'); },
+                onWindowCreate: function (w) { $(w).on('mousedown', function () { pencereOncePlan(this); }); }
+            });
+        }
+
+        function medyaPenceresiAc() {
+            var mevcut = $('.win-medya'); if (mevcut.length > 0) { pencereOncePlan(mevcut); return; }
+            var icerik = document.getElementById('medya-icerik-sablonu').innerHTML;
+            Metro.window.create({ title: 'Medya Yönetimi', clsWindow: 'win-medya', shadow: true, draggable: true, resizable: true, maximizable: true, minimizable: true, closable: true, width: 950, height: 600, place: 'center', clsCaption: 'dinamik-tema-arkaplan', content: '<div style="padding:15px; max-height:560px; overflow-y:auto;">' + icerik + '</div>', onWindowCreate: function (w) { $(w).on('mousedown', function () { pencereOncePlan(this); }); } });
+            setTimeout(function () { var fileInp = $('.win-medya').find('input[type="file"]')[0]; if (fileInp) Metro.makePlugin(fileInp, 'file', { buttonTitle: "Seç" }); }, 100);
+        }
+
+        function belgePenceresiAc() {
+            var mevcut = $('.win-belge'); if (mevcut.length > 0) { pencereOncePlan(mevcut); return; }
+            var icerik = document.getElementById('belge-icerik-sablonu').innerHTML;
+            Metro.window.create({ title: 'Belge Yönetimi', clsWindow: 'win-belge', shadow: true, draggable: true, resizable: true, maximizable: true, minimizable: true, closable: true, width: 950, height: 600, place: 'center', clsCaption: 'dinamik-tema-arkaplan', content: '<div style="padding:15px; max-height:560px; overflow-y:auto;">' + icerik + '</div>', onWindowCreate: function (w) { $(w).on('mousedown', function () { pencereOncePlan(this); }); } });
+            setTimeout(function () { var fileInp = $('.win-belge').find('input[type="file"]')[0]; if (fileInp) Metro.makePlugin(fileInp, 'file', { buttonTitle: "Seç" }); }, 100);
+        }
+
+ 
+         function dosyaSil(dosyaAdi, event) {
+             if (event) event.stopPropagation();
+             gorselKapat();
+
+             Metro.dialog.create({
+                 title: "Dosya Silme Onayı",
+                 content: "<div><b>" + dosyaAdi + "</b> adlı dosyayı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.</div>",
+                 actions: [
+                     {
+                         caption: "Evet, Sil",
+                         cls: "js-dialog-close alert",
+                         onclick: function () {
+                             $.post('/Medya/DosyaSil', { dosyaAdi: dosyaAdi })
+                             .done(function () {
+                                 Metro.toast.create("Dosya başarıyla silindi!", null, 2000, "bg-green fg-white");
+
+                                
+                                 $.get(window.location.href, function(html) {
+                                     var geciciKutu = $('<div>').html(html);
+                                     var yeniBelgeListe = geciciKutu.find('#belge-icerik-sablonu .galeri-alani').html();
+                                     if(yeniBelgeListe) {
+                                         $('.win-belge .galeri-alani').html(yeniBelgeListe);
+                                         $('#belge-icerik-sablonu .galeri-alani').html(yeniBelgeListe);
+                                     }
+                                     var yeniMedyaListe = geciciKutu.find('#medya-icerik-sablonu .galeri-alani').html();
+                                     if(yeniMedyaListe) {
+                                         $('.win-medya .galeri-alani').html(yeniMedyaListe);
+                                         $('#medya-icerik-sablonu .galeri-alani').html(yeniMedyaListe);
+                                     }
+                                 });
+                             })
+                             .fail(function (xhr) {
+                                 Metro.toast.create("Hata: " + (xhr.responseText || ""), null, 2000, "bg-red fg-white");
+                             });
+                         }
+                     },
+                     { caption: "İptal", cls: "js-dialog-close" }
+                 ],
+                 onDialogCreate: function(dlg) {
+                     setTimeout(function() {
+                         zSayac += 100;
+                         $(dlg).css('z-index', zSayac);
+                         $('.dialog-overlay').last().css('z-index', zSayac - 1);
+                     }, 10);
+                 }
+             });
+         }
+         function paneliSabitle() { panelSabitMi = !panelSabitMi; var pinBtn = document.getElementById('pinButton'); if (panelSabitMi) { pinBtn.classList.add('bg-cyan'); document.body.classList.add('menuler-sabit'); } else { pinBtn.classList.remove('bg-cyan'); document.body.classList.remove('menuler-sabit'); } }
+        function toggleKendiPanelimiz() { $('#sol-profil-menusu').toggleClass('open'); $('#arka-plan-golgesi').toggleClass('open'); }
+        function sifreDegistirAc() { $('#sol-profil-menusu').removeClass('open'); $('#arka-plan-golgesi').removeClass('open'); sifreDegistirPenceresiAc(); }
+        function sifreDegistirPenceresiAc() { var icerik = '<form id="sifreDegistirForm" action="/Hesap/SifreGuncelle" method="post" class="p-4"><div class="form-group"><label>Eski Şifre</label><input type="password" name="EskiSifre" data-role="input" required></div><div class="form-group mt-3"><label>Yeni Şifre</label><input type="password" name="YeniSifre" data-role="input" required></div><div class="form-group mt-3"><label>Yeni Şifre (Tekrar)</label><input type="password" name="YeniSifreTekrar" data-role="input" required></div><div class="form-group mt-4 text-right"><button class="button primary">Değiştir</button></div></form>';
+        Metro.dialog.create({ title: 'Şifre Değiştir', content: icerik, closeButton: true, width: 400 }); }
+
+
+        
+         $(document).on('submit', '.dosya-yukle-form', function(e) {
+             e.preventDefault();
+             var form = $(this);
+             var fileInput = form.find('input[type="file"]')[0];
+
+             if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                 Metro.toast.create("Lütfen yüklemek için bir dosya seçin!", null, 2000, "bg-red fg-white");
+                 return false;
+             }
+
+             
+             var formData = new FormData(form[0]);
+
+             var btn = form.find('button[type="submit"]');
+             var originalText = btn.html();
+             btn.html('<span class="mif-spinner4 ani-spin"></span> Yükleniyor...').prop('disabled', true);
+
+             $.ajax({
+                 url: form.attr('action'),
+                 type: 'POST',
+                 data: formData,
+                 processData: false,
+                 contentType: false,
+                 success: function() {
+                     Metro.toast.create("Dosya başarıyla yüklendi!", null, 2000, "bg-green fg-white");
+                     btn.html(originalText).prop('disabled', false);
+                     form[0].reset();
+
+                    
+                     $.get(window.location.href, function(html) {
+                         var geciciKutu = $('<div>').html(html);
+
+                         var yeniBelgeListe = geciciKutu.find('#belge-icerik-sablonu .galeri-alani').html();
+                         if(yeniBelgeListe) {
+                             $('.win-belge .galeri-alani').html(yeniBelgeListe);
+                             $('#belge-icerik-sablonu .galeri-alani').html(yeniBelgeListe); 
+                         }
+
+                         var yeniMedyaListe = geciciKutu.find('#medya-icerik-sablonu .galeri-alani').html();
+                         if(yeniMedyaListe) {
+                             $('.win-medya .galeri-alani').html(yeniMedyaListe);
+                             $('#medya-icerik-sablonu .galeri-alani').html(yeniMedyaListe);
+                         }
+                     });
+                 },
+                 error: function() {
+                     Metro.toast.create("Sunucuya bağlanırken hata oluştu!", null, 2000, "bg-red fg-white");
+                     btn.html(originalText).prop('disabled', false);
+                 }
+             });
+         });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

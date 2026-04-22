@@ -1,0 +1,48 @@
+@model IEnumerable<Dictionary<string, object>>
+@{
+    Layout = "~/Views/Shared/_PencereLayout.cshtml";
+}
+
+<div class="container-fluid p-0 m-0" style="min-height:100vh; padding: 20px !important;">
+    <h2 class="mt-0">B Personel Listesi</h2>
+    <hr />
+
+    <div class="row mb-4">
+        <div class="cell-md-4">
+            <a href="/BPersonel/Ekle" class="button primary"><span class="mif-plus"></span> Yeni Personel Ekle</a>
+        </div>
+
+        <div class="cell-md-8 text-right">
+            <form asp-controller="BPersonel" asp-action="Index" method="get" class="d-flex flex-row flex-justify-end">
+                <input type="text" data-role="input" name="aramaKelimesi"
+                       placeholder="Ad, Soyad veya Sicil No ile ara..." style="width: 300px; margin-right: 10px;">
+                <button type="submit" class="button secondary">Ara</button>
+                <a href="/BPersonel/Index" class="button outline alert" style="margin-left: 10px;">Temizle</a>
+            </form>
+        </div>
+    </div>
+
+    <partial name="_OrtakGridPartial" model="Model" />
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function silOnayi(url) {
+        Swal.fire({
+        title: 'Emin misiniz?',
+        text: 'Kayıt kalıcı olarak silinecektir.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Evet, Sil',
+        cancelButtonText: 'İptal'
+        }).then((result) => {
+        if (result.isConfirmed) {
+        window.location.href = url;
+        }
+        });
+        }
+    </script>
+}

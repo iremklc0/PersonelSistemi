@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="tr" style="height:100%;">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modül Penceresi</title>
+    
+    <link rel="stylesheet" href="https://cdn.metroui.org.ua/v4/css/metro-all.min.css" />
+    <link rel="stylesheet" href="/css/otek-sistem.css" />
+    
+    <style>
+            html,
+            body {
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                background-color: #ffffff;
+            }
+
+            /* Tüm renkli butonlar temaya uysun */
+            body .button.primary,
+            body .button.success,
+            body .button.warning,
+            body .button.info,
+            body .button.dark {
+                background-color: var(--tema-arkaplan, #343a40) !important;
+                border-color: var(--tema-arkaplan, #343a40) !important;
+                color: var(--tema-yazi, #ffffff) !important;
+                transition: all 0.3s ease !important;
+            }
+
+            body .button.primary:hover,
+            body .button.success:hover,
+            body .button.warning:hover,
+            body .button.info:hover,
+            body .button.dark:hover {
+                background-color: var(--tema-vurgu, #1d2124) !important;
+                border-color: var(--tema-vurgu, #1d2124) !important;
+                color: var(--tema-yazi, #ffffff) !important;
+            }
+
+            /* Güncelle ve Sil butonları kendi renklerini korusun */
+            body .button.alert {
+                background-color: #e53935 !important;
+                border-color: #e53935 !important;
+                color: #ffffff !important;
+            }
+
+            body .button.alert:hover {
+                background-color: #b71c1c !important;
+                border-color: #b71c1c !important;
+            }
+    </style>
+</head>
+
+<body style="height:100%; margin:0; padding:0;">
+    <div class="p-4">
+        @RenderBody()
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.metroui.org.ua/v4/js/metro.min.js"></script>
+    
+    <script>
+        function temayiUygula() {
+        var kTema = localStorage.getItem('otek_sistem_temasi');
+        var kYazi = localStorage.getItem('otek_sistem_yazi');
+        var kVurgu = localStorage.getItem('otek_sistem_vurgu');
+
+        if (kTema) {
+        document.documentElement.style.setProperty('--tema-arkaplan', kTema);
+        document.documentElement.style.setProperty('--tema-yazi', kYazi || '#ffffff');
+        document.documentElement.style.setProperty('--tema-vurgu', kVurgu || '#1d2124');
+        }
+        }
+
+        temayiUygula();
+
+        // Ana sayfada tema değişince tüm açık pencereler de anlık güncellenir
+        window.addEventListener('storage', function () { temayiUygula(); });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

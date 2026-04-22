@@ -1,0 +1,257 @@
+@model PersonelSistemi.Models.GenelGridModel
+@{
+    Layout = null;
+    string sayfaBasligi = Model.ControllerAdi == "Personel" ? "A Personel Listesi" : Model.ControllerAdi + " Listesi";
+    string mevcutSiralamaAlani = Model.SiralamaAlani ?? "";
+    string mevcutCihet = Model.SiralamaCiheti ?? "asc";
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>@sayfaBasligi</title>
+    <link rel="stylesheet" href="https://cdn.metroui.org.ua/v4.3.2/css/metro-all.min.css">
+    <style>
+            .sirala-baslik {
+                cursor: pointer;
+                user-select: none;
+                white-space: nowrap;
+                display: inline-block;
+                width: 100%;
+            }
+
+            .sirala-baslik:hover {
+                color: #0056b3;
+            }
+
+            .sirala-ikon {
+                margin-left: 5px;
+                font-size: 11px;
+                color: #aaa;
+            }
+
+            .sirala-aktif .sirala-ikon {
+                color: #0078d4;
+                font-weight: bold;
+            }
+    </style>
+</head>
+
+<body class="bg-white">
+    <div class="container-fluid p-0 m-0" style="padding: 20px !important;">
+        <h2 class="mt-0">@sayfaBasligi</h2>
+        <hr />
+        <div class="row mb-4">
+            <div class="cell-md-12">
+                <a href="/@Model.ControllerAdi/Ekle" class="button primary"><span class="mif-plus"></span> Yeni Kayıt
+                    Ekle</a>
+                </div>
+            </div>
+
+            <form method="get" action="/@Model.ControllerAdi/Index" id="filtre-form">
+                <input type="hidden" name="siralamaAlani" id="siralamaAlani" value="@mevcutSiralamaAlani" />
+                <input type="hidden" name="siralamaCiheti" id="siralamaCiheti" value="@mevcutCihet" />
+
+                <table class="table striped table-border mt-4" data-role="table" data-show-search="false"
+                       data-show-rows-steps="false" data-rows="@Model.SayfaBasinaKayitSayisi" data-show-table-info="false"
+                       data-show-pagination="@(Model.IsPaging ? "true" : "false")" data-pagination-prev-title="Önceki"
+                       data-pagination-next-title="Sonraki" data-empty-table-title="Kayıt bulunamadı">
+                    <thead>
+                        <tr>
+                            <th style="vertical-align: top;">Sıra No</th>
+                            @if (Model.Kolonlar != null)
+                            {
+                                foreach (var kolon in Model.Kolonlar)
+                                {
+                                    bool buKolonAktif = mevcutSiralamaAlani == kolon.VeriAlani;
+                                    string ikonHtml = kolon.SiralanabilirMi
+                                        ? (buKolonAktif ? (mevcutCihet == "asc" ? " ▲" : " ▼") : " ⇅")
+                                        : "";
+
+                                    <th style="vertical-align: top;">
+                                        @if (kolon.SiralanabilirMi)
+                                        {
+                                            <div class="sirala-baslik @(buKolonAktif ? "sirala-aktif" : "")"
+                                                 onclick="sirala('@kolon.VeriAlani')">
+                                                @kolon.Baslik <span class="sirala-ikon">@Html.Raw(ikonHtml)</span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div style="font-weight: bold;">@kolon.Baslik</div>
+                                        }
+
+                                        @if (Model.IsFiltered && kolon.FiltrelenebilirMi)
+                                        {
+                                            <div class="mt-2" onclick="event.stopPropagation()">
+                                                <input type="text" data-role="input" data-clear-button="true" name="@kolon.VeriAlani"
+                                                       value="@Context.Request.Query[kolon.VeriAlani!]" placeholder="@kolon.Baslik Ara..."
+                                                       style="font-size: 12px;"
+                                                       maxlength="@(kolon.MaxKarakter.HasValue? kolon.MaxKarakter.Value.ToString() : "")"
+                                                       onkeypress="if(event.keyCode == 13) { document.getElementById('filtre-form').submit(); }" />
+                                            </div>
+                                        }
+                                    </th>
+                                }
+                            }
+                            @if (Model.Butonlar != null && Model.Butonlar.Any())
+                            {
+                                <th style="vertical-align: top;">İşlemler</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Veriler != null && Model.Veriler.Any() && Model.Kolonlar != null)
+                        {
+                            int sayac = 1;
+                            foreach (var item in Model.Veriler)
+                            {
+                                <tr>
+                                    <td>@(sayac++)</td>
+                                    @foreach (var kolon in Model.Kolonlar)
+                                    {
+                                        <td>@item[kolon.VeriAlani!]</td>
+                                    }
+                                    @if (Model.Butonlar != null && Model.Butonlar.Any())
+                                    {
+                                        <td>
+                                            @foreach (var buton in Model.Butonlar)
+                                            {
+                                                var url = $"/{Model.ControllerAdi}/{buton.Aksiyon}/{item["objectid"]}";
+                                                @if (buton.OnayGerektirirMi)
+                                                {
+                                                    <button type="button" class="@buton.CssSinifi"
+                                                            onclick="silOnayi('@url')">@buton.Metin</button>
+                                                }
+                                                else
+                                                {
+                                                    <a href="@url" class="@buton.CssSinifi">@buton.Metin</a>
+                                                }
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="@((Model.Kolonlar?.Count ?? 0) + 2)" class="text-center fg-gray">Kayıt bulunamadı.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </form>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.metroui.org.ua/v4.3.2/js/metro.min.js"></script>
+        <script>
+            function sirala(alan) {
+                var form = document.getElementById('filtre-form');
+                
+                var alaniInput = document.getElementById('siralamaAlani');
+                if (!alaniInput) {
+                    alaniInput = document.createElement('input');
+                    alaniInput.type = 'hidden';
+                    alaniInput.name = 'siralamaAlani';
+                    alaniInput.id = 'siralamaAlani';
+                    form.appendChild(alaniInput);
+                }
+                
+                var cihetiInput = document.getElementById('siralamaCiheti');
+                if (!cihetiInput) {
+                    cihetiInput = document.createElement('input');
+                    cihetiInput.type = 'hidden';
+                    cihetiInput.name = 'siralamaCiheti';
+                    cihetiInput.id = 'siralamaCiheti';
+                    form.appendChild(cihetiInput);
+                }
+
+                var mevcutAlan = alaniInput.value;
+                var mevcutCihet = cihetiInput.value || 'asc';
+
+                if (mevcutAlan === alan) {
+                    cihetiInput.value = (mevcutCihet === 'asc') ? 'desc' : 'asc';
+                } else {
+                    alaniInput.value = alan;
+                    cihetiInput.value = 'asc';
+                }
+                
+                form.submit();
+            }
+
+            function silOnayi(url) {
+            Metro.dialog.create({
+            title: "<span class='mif-warning fg-red'></span> Emin misiniz?",
+            content: "<div>Bu kaydı kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.</div>",
+            actions: [
+            {
+            caption: "Evet, Sil",
+            cls: "js-dialog-close button alert",
+            onclick: function () { window.location.href = url; }
+            },
+            {
+            caption: "İptal",
+            cls: "js-dialog-close button light"
+            }
+            ]
+            });
+            }
+
+            $(document).ready(function () {
+            var filtreler = document.querySelectorAll('input[data-role="input"][name]');
+            filtreler.forEach(function (input) {
+            setTimeout(function () {
+            var wrapper = input.closest('.input-wrapper, [class*="text-input"], .metro-input');
+            if (!wrapper) wrapper = input.parentElement;
+            var clearBtn = wrapper ? wrapper.querySelector('.clear-button, [class*="clear"]') : null;
+            if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+            setTimeout(function () {
+            input.value = '';
+            document.getElementById('filtre-form').submit();
+            }, 10);
+            });
+            }
+            }, 500);
+            });
+
+            $(document).on('keyup', 'input[data-role="input"][name]', function () {
+            if ($(this).val() === '') {
+            var self = this;
+            setTimeout(function () {
+            if ($(self).val() === '') {
+            document.getElementById('filtre-form').submit();
+            }
+            }, 50);
+            }
+            });
+
+            $(document).on('Metro:inputClear', 'input[data-role="input"]', function () {
+            document.getElementById('filtre-form').submit();
+            });
+            });
+
+            document.addEventListener('mousedown', function () {
+            if (window.parent && window.parent.$) {
+            var iframes = window.parent.document.getElementsByTagName('iframe');
+            for (var i = 0; i < iframes.length; i++) {
+            if (iframes[i].contentWindow === window) {
+            var pencere = window.parent.$(iframes[i]).closest('.window');
+            if (pencere.length > 0 && typeof window.parent.pencereOncePlan === 'function') {
+            window.parent.pencereOncePlan(pencere[0]);
+            }
+            break;
+            }
+            }
+            }
+            });
+        </script>
+    </body>
+
+</html>

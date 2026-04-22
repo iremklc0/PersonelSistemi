@@ -1,0 +1,77 @@
+@model PersonelSistemi.Models.LoginViewModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sisteme Giriş - Personel Yönetimi</title>
+
+    <link rel="stylesheet" href="https://cdn.metroui.org.ua/v4.3.2/css/metro-all.min.css">
+
+    <style>
+                body {
+                    height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: #f4f6f9;
+
+                }
+
+                .login-box {
+                    width: 350px;
+                    padding: 40px 30px;
+                    background: #ffffff;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+                    border-top: 4px solid #ce352c;
+
+                }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-box">
+        <div class="text-center mb-4">
+            <span class="mif-users mif-4x fg-dark"></span>
+            <h3 class="mb-0 mt-2">Kullanıcı Girişi</h3>
+        </div>
+
+        <form asp-controller="Login" asp-action="Index" method="post">
+
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="remark alert mb-3" style="padding: 10px;">
+                    <div asp-validation-summary="All" class="text-small fg-white"></div>
+                </div>
+            }
+
+            <div class="form-group mb-3">
+
+                <input type="text" asp-for="KullaniciAdi" data-role="input"
+                       data-prepend="<span class='mif-user'></span>" placeholder="Kullanıcı Adı">
+                    <span asp-validation-for="KullaniciAdi" class="fg-red text-small"></span>
+                </div>
+
+                <div class="form-group mb-4">
+                    <input type="password" asp-for="Sifre" data-role="input" data-prepend="<span class='mif-key'></span>"
+                           placeholder="Şifre">
+                        <span asp-validation-for="Sifre" class="fg-red text-small"></span>
+                    </div>
+
+                    <div class="form-group text-center">
+                        <button type="submit" class="button primary w-100">Giriş Yap</button>
+                    </div>
+                </form>
+            </div>
+
+            <script src="https://cdn.metroui.org.ua/v4.3.2/js/metro.min.js"></script>
+        </body>
+
+    </html>

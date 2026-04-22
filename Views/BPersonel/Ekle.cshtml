@@ -1,0 +1,36 @@
+@model PersonelSistemi.Models.BPersonel
+@{
+    Layout = "~/Views/Shared/_PencereLayout.cshtml";
+}
+
+<div class="container" style="margin-top: 20px;">
+    <h2>Yeni Personel Ekle</h2>
+    <hr />
+
+    <form asp-controller="BPersonel" asp-action="Ekle" method="post">
+
+        <div asp-validation-summary="ModelOnly" class="fg-red mb-2 text-bold"></div>
+
+        <div class="row mb-4">
+            <div class="cell-md-6">
+                <label>Adı</label>
+                <input type="text" data-role="input" asp-for="adi" placeholder="Personel Adı" required>
+                    <span asp-validation-for="adi" class="fg-red text-small"></span>
+                </div>
+
+                <div class="cell-md-6">
+                    <label>Soyadı</label>
+                    <input type="text" data-role="input" asp-for="soyadi" placeholder="Personel Soyadı" required>
+                        <span asp-validation-for="soyadi" class="fg-red text-small"></span>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="cell-md-12">
+                        <button type="submit" class="button success"><span class="mif-floppy-disk"></span> Kaydet</button>
+                        <a href="/BPersonel/Index" class="button secondary outline">İptal</a>
+                    </div>
+                </div>
+
+            </form>
+        </div>
