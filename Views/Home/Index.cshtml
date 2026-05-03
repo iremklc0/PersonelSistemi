@@ -1,12 +1,761 @@
 ﻿@{
-    ViewData["Title"] = "Ana Sayfa";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Ana Sayfa - Ankara Harita Modülü";
 }
 
-<div class="text-center" style="margin-top: 100px;">
-    <span class="mif-home mif-5x fg-cyan"></span>
-    <h1 class="mt-4">OTEK Yönetim Sistemine Hoş Geldiniz</h1>
-    <p class="fg-gray text-leader">
-        Lütfen işlem yapmak için üst menüden bir seçenek belirleyin.
-    </p>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@8.2.0/ol.css">
+<script src="https://cdn.jsdelivr.net/npm/ol@8.2.0/dist/ol.js"></script>
+
+<link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.105/Build/Cesium/Widgets/widgets.css" />
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.105/Build/Cesium/Cesium.js"></script>
+
+<script src="https://unpkg.com/ol-cesium@2.14.0/dist/olcesium.js"></script>
+<style>
+    body {
+        overflow: hidden !important;
+    }
+
+    #map {
+        width: 100%;
+        height: calc(100vh - 60px);
+        background-color: #f8f9fa;
+        position: relative;
+    }
+
+    .ol-attribution, .cesium-widget-credits, .cesium-credit-textContainer, .cesium-credit-logoContainer {
+        display: none !important;
+    }
+
+    .harita-butonu {
+        position: absolute;
+        bottom: 30px;
+        z-index: 1000;
+        background-color: #2c3e50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        transition: background-color 0.3s;
+    }
+
+        .harita-butonu:hover {
+            background-color: #1a252f;
+        }
+
+    #btnAnaGorunum {
+        right: 30px;
+    }
+
+    #btn2D3D {
+        right: 90px;
+    }
+
+    .ozel-sag-tik-menu {
+        position: fixed;
+        background-color: white;
+        border: 1px solid #dcdde1;
+        border-radius: 6px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        z-index: 2000;
+        display: none;
+        min-width: 160px;
+        overflow: hidden;
+    }
+
+        .ozel-sag-tik-menu ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .ozel-sag-tik-menu li {
+            padding: 12px 15px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #2f3640;
+            cursor: pointer;
+            border-bottom: 1px solid #f5f6fa;
+        }
+
+            .ozel-sag-tik-menu li:last-child {
+                border-bottom: none;
+            }
+
+            .ozel-sag-tik-menu li:hover {
+                background-color: #f5f6fa;
+                color: #e74c3c;
+            }
+
+    .ol-popup {
+        position: absolute;
+        background-color: white;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #cccccc;
+        bottom: 12px;
+        left: -50px;
+        min-width: 250px;
+    }
+
+        .ol-popup:after, .ol-popup:before {
+            top: 100%;
+            border: solid transparent;
+            content: " ";
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .ol-popup:after {
+            border-top-color: white;
+            border-width: 10px;
+            left: 48px;
+            margin-left: -10px;
+        }
+
+        .ol-popup:before {
+            border-top-color: #cccccc;
+            border-width: 11px;
+            left: 48px;
+            margin-left: -11px;
+        }
+
+    .ol-popup-closer {
+        text-decoration: none;
+        position: absolute;
+        top: 2px;
+        right: 8px;
+        color: #e74c3c;
+        font-weight: bold;
+    }
+
+        .ol-popup-closer:after {
+            content: "✖";
+        }
+
+    
+    #koordinat-popup {
+        position: absolute;
+        background: #2c3e50;
+        color: white;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        z-index: 1500;
+        display: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        pointer-events: all;
+    }
+
+        #koordinat-popup button {
+            margin-top: 8px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        #koordinat-popup .kopyala-btn {
+            background: #27ae60;
+            margin-right: 5px;
+        }
+</style>
+
+<div class="container-fluid p-0 m-0">
+    <div id="map">
+        <button class="harita-butonu" id="btn2D3D" title="3D Görünüme Geç">3D</button>
+        <button class="harita-butonu" id="btnAnaGorunum" title="Ankara Merkeze Dön"><span class="mif-home mif-2x"></span></button>
+
+        
+        <div id="koordinat-popup">
+            <div id="koordinat-popup-icerik"></div>
+            <div style="margin-top:8px; display:flex; gap:5px;">
+                <button class="kopyala-btn" onclick="koordinatiKopyala()">📋 Kopyala</button>
+                <button onclick="koordinatPopupuKapat()">✖ Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dialog" data-role="dialog" id="insaatDialog" data-width="400">
+        <div class="dialog-title">🏗️ Yeni İnşaat Başlat</div>
+        <div class="dialog-content">
+            <form id="frmInsaatEkle">
+                <div class="form-group">
+                    <label>İnşaat Adı (Proje İsmi)</label>
+                    <input type="text" name="InsaatAdi" required>
+                </div>
+                <div class="form-group mt-2">
+                    <label>İnşaat Türü (Bina, Şantiye vb.)</label>
+                    <input type="text" name="InsaatTuru" required>
+                </div>
+                <div class="form-group mt-2">
+                    <label>Açıklama</label>
+                    <input type="text" name="Aciklama" required>
+                </div>
+                <div class="form-group mt-2">
+                    <label>Durum</label>
+                    <select data-role="select" name="DurumId">
+                        <option value="1">🟡 Sarı (Devam Ediyor)</option>
+                        <option value="0">🔴 Kırmızı (Durduruldu)</option>
+                        <option value="2">🟢 Yeşil (Tamamlandı)</option>
+                    </select>
+                </div>
+                <input type="hidden" id="gizliKoordinatX" name="KoordinatX">
+                <input type="hidden" id="gizliKoordinatY" name="KoordinatY">
+                <div class="mt-2 text-small text-muted" id="koordinatBilgiMetni"></div>
+            </form>
+        </div>
+        <div class="dialog-actions text-right">
+            <button class="button js-dialog-close">İptal</button>
+            <button class="button primary" id="btnKaydet">Veritabanına Kaydet</button>
+        </div>
+    </div>
 </div>
+
+<div id="sagTikMenu" class="ozel-sag-tik-menu">
+    <ul>
+        <li id="btnInsaatBaslat">🏗️ İnşaat Başlat</li>
+        <li id="btnKoordinatEkle">📍 Koordinat Ekle</li>
+    </ul>
+</div>
+
+<div id="popup" class="ol-popup">
+    <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+    <div id="popup-content"></div>
+</div>
+
+<script>
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4MDMwMmJjMC0xZjg5LTQ4YWMtOWQzYy1mMzdkM2M3NzVhOTQiLCJpZCI6NDI2NTE4LCJpc3MiOiJodHRwczovL2lvbi5jZXNpdW0uY29tIiwiYXVkIjoidW5kZWZpbmVkX2RlZmF1bHQiLCJpYXQiOjE3Nzc3NTMyODR9.rox7zITjw86YNZcIZjCH2SgJ72bDFFqMlQV-QkNLABs';
+    var ankaraMerkez = ol.proj.fromLonLat([32.8597, 39.9208]);
+    var haritaGorunumu = new ol.View({ center: ankaraMerkez, zoom: 9, minZoom: 6, maxZoom: 18 });
+
+    var map = new ol.Map({
+        target: 'map',
+        layers: [ new ol.layer.Tile({ source: new ol.source.OSM() }) ],
+        view: haritaGorunumu,
+        controls: ol.control.defaults.defaults({ attribution: false })
+    });
+        var ctrlIleDondur = new ol.interaction.DragRotate({
+        condition: ol.events.condition.platformModifierKeyOnly
+    });
+    map.addInteraction(ctrlIleDondur);
+
+    var container = document.getElementById('popup');
+    var content = document.getElementById('popup-content');
+    var closer = document.getElementById('popup-closer');
+
+    var overlay = new ol.Overlay({
+        element: container,
+        autoPan: { animation: { duration: 250 } },
+    });
+    map.addOverlay(overlay);
+
+    closer.onclick = function () {
+        overlay.setPosition(undefined);
+        closer.blur();
+        return false;
+    };
+
+        map.on('singleclick', function (evt) {
+        if (typeof window.ol3d !== 'undefined' && window.ol3d.getEnabled()) return;
+
+        var feature = map.forEachFeatureAtPixel(evt.pixel, function (f) { return f; });
+
+        if (feature) {
+            if (feature.get('koordinatPini')) {
+                geciciPinSource.removeFeature(feature);
+                document.getElementById('koordinat-popup').style.display = 'none';
+                return;
+            }
+
+            if (feature.get('insaatBilgisi')) {
+                var insaat = feature.get('insaatBilgisi');
+                    var geometri = feature.getGeometry();
+    var koordinat = geometri.getType() === 'Polygon' ? ol.extent.getCenter(geometri.getExtent()) : geometri.getCoordinates();
+
+                content.innerHTML = `
+                    <h5 style="margin: 0 0 5px 0; color: #2c3e50;"><b>🏢 ${insaat.insaatAdi}</b></h5>
+                    <hr style="margin: 5px 0;">
+                    <p style="margin: 0; font-size: 14px;"><b>Türü:</b> ${insaat.insaatTuru}</p>
+                    <p style="margin: 0; font-size: 14px;"><b>Açıklama:</b> ${insaat.aciklama}</p>
+                    <div style="margin-top: 10px;">
+                        <label style="font-size: 12px; font-weight: bold;">Durum Güncelle:</label>
+                        <select onchange="durumDegistir(${insaat.id}, this.value)" style="width: 100%; padding: 5px; margin-top: 5px;">
+                            <option value="0" ${insaat.durumId === 0 ? 'selected' : ''}>🔴 Durduruldu</option>
+                            <option value="1" ${insaat.durumId === 1 ? 'selected' : ''}>🟡 Devam Ediyor</option>
+                            <option value="2" ${insaat.durumId === 2 ? 'selected' : ''}>🟢 Tamamlandı</option>
+                        </select>
+                    </div>
+                    <button onclick="insaatSil(${insaat.id})" class="button alert mini" style="width: 100%; margin-top: 10px;">
+                        🗑️ İnşaatı Sil
+                    </button>
+                `;
+                overlay.setPosition(koordinat);
+            }
+        } else {
+            overlay.setPosition(undefined);
+        }
+    });
+
+    var fareSurukleniyorMu = false;
+
+    document.getElementById('map').addEventListener('pointerdown', function() {
+        fareSurukleniyorMu = false;
+    });
+
+    document.getElementById('map').addEventListener('pointermove', function() {
+        fareSurukleniyorMu = true;
+    });
+
+    document.getElementById('map').addEventListener('pointerup', function(e) {
+        if (fareSurukleniyorMu || e.button !== 0) return;
+
+        if (typeof window.ol3d !== 'undefined' && window.ol3d.getEnabled()) {
+            var cesiumScene = window.ol3d.getCesiumScene();
+
+            var rect = document.getElementById('map').getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+            var clickPozisyonu = new Cesium.Cartesian2(x, y);
+
+            var pickedObject = cesiumScene.pick(clickPozisyonu);
+
+            if (Cesium.defined(pickedObject)) {
+                var feature = pickedObject.primitive.olFeature || pickedObject.id;
+
+                if (feature && feature.get('insaatBilgisi')) {
+                    var insaat = feature.get('insaatBilgisi');
+
+                    var cartesian = cesiumScene.camera.pickEllipsoid(clickPozisyonu, cesiumScene.globe.ellipsoid);
+                    if (cartesian) {
+                        var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+                        var lon = Cesium.Math.toDegrees(cartographic.longitude);
+                        var lat = Cesium.Math.toDegrees(cartographic.latitude);
+                        var olKoordinat = ol.proj.fromLonLat([lon, lat]);
+
+                        content.innerHTML = `
+                            <h5 style="margin: 0 0 5px 0; color: #2c3e50;"><b>🏢 ${insaat.insaatAdi}</b></h5>
+                            <hr style="margin: 5px 0;">
+                            <p style="margin: 0; font-size: 14px;"><b>Türü:</b> ${insaat.insaatTuru}</p>
+                            <p style="margin: 0; font-size: 14px;"><b>Açıklama:</b> ${insaat.aciklama}</p>
+                            <div style="margin-top: 10px;">
+                                <label style="font-size: 12px; font-weight: bold;">Durum Güncelle:</label>
+                                <select onchange="durumDegistir(${insaat.id}, this.value)" style="width: 100%; padding: 5px; margin-top: 5px;">
+                                    <option value="0" ${insaat.durumId === 0 ? 'selected' : ''}>🔴 Durduruldu</option>
+                                    <option value="1" ${insaat.durumId === 1 ? 'selected' : ''}>🟡 Devam Ediyor</option>
+                                    <option value="2" ${insaat.durumId === 2 ? 'selected' : ''}>🟢 Tamamlandı</option>
+                                </select>
+                            </div>
+                            <button onclick="insaatSil(${insaat.id})" class="button alert mini" style="width: 100%; margin-top: 10px;">
+                                🗑️ İnşaatı Sil
+                            </button>
+                        `;
+                        overlay.setPosition(olKoordinat);
+                    }
+                }
+            } else {
+                overlay.setPosition(undefined);
+            }
+        }
+    });
+
+    // =========================================================
+    // 2. MOTOR: 3D (CESIUM) İÇİN ÖZEL SOL TIK
+    // =========================================================
+    if (typeof ol3d !== 'undefined') {
+        var cesiumScene = ol3d.getCesiumScene();
+        var leftClickHandler = new Cesium.ScreenSpaceEventHandler(cesiumScene.canvas);
+
+        leftClickHandler.setInputAction(function (click) {
+            
+            if (!ol3d.getEnabled()) return;
+
+            var pickedObject = cesiumScene.pick(click.position);
+
+            if (Cesium.defined(pickedObject)) {
+                var feature = pickedObject.primitive.olFeature || pickedObject.id;
+
+                if (feature && feature.get('insaatBilgisi')) {
+                    var insaat = feature.get('insaatBilgisi');
+
+                    // Tıklanan pikselin dünya koordinatını bul
+                    var cartesian = cesiumScene.camera.pickEllipsoid(click.position, cesiumScene.globe.ellipsoid);
+                    if (cartesian) {
+                        var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+                        var lon = Cesium.Math.toDegrees(cartographic.longitude);
+                        var lat = Cesium.Math.toDegrees(cartographic.latitude);
+                        var olKoordinat = ol.proj.fromLonLat([lon, lat]);
+
+                        // Popup içeriğini doldur
+                        content.innerHTML = `
+                            <h5 style="margin: 0 0 5px 0; color: #2c3e50;"><b>🏢 ${insaat.insaatAdi}</b></h5>
+                            <hr style="margin: 5px 0;">
+                            <p style="margin: 0; font-size: 14px;"><b>Türü:</b> ${insaat.insaatTuru}</p>
+                            <p style="margin: 0; font-size: 14px;"><b>Açıklama:</b> ${insaat.aciklama}</p>
+
+                            <div style="margin-top: 10px;">
+                                <label style="font-size: 12px; font-weight: bold;">Durum Güncelle:</label>
+                                <select onchange="durumDegistir(${insaat.id}, this.value)" style="width: 100%; padding: 5px; margin-top: 5px;">
+                                    <option value="0" ${insaat.durumId === 0 ? 'selected' : ''}>🔴 Durduruldu</option>
+                                    <option value="1" ${insaat.durumId === 1 ? 'selected' : ''}>🟡 Devam Ediyor</option>
+                                    <option value="2" ${insaat.durumId === 2 ? 'selected' : ''}>🟢 Tamamlandı</option>
+                                </select>
+                            </div>
+
+                            <button onclick="insaatSil(${insaat.id})" class="button alert mini" style="width: 100%; margin-top: 10px;">
+                                🗑️ İnşaatı Sil
+                            </button>
+                        `;
+                        overlay.setPosition(olKoordinat);
+                    }
+                }
+            } else {
+                overlay.setPosition(undefined); // Boşluğa tıklanırsa kapat
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    }
+
+    fetch('https://nominatim.openstreetmap.org/search?state=Ankara&country=Turkey&polygon_geojson=1&format=json')
+        .then(response => response.json())
+        .then(data => {
+            if(data && data.length > 0) {
+                var format = new ol.format.GeoJSON();
+                var features = format.readFeatures(data[0].geojson, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' });
+                var sinir = new ol.layer.Vector({
+                    source: new ol.source.Vector({ features: features }),
+                    style: new ol.style.Style({ stroke: new ol.style.Stroke({ color: '#e74c3c', width: 4 }) })
+                });
+                map.addLayer(sinir);
+            }
+        });
+
+    var markerSource = new ol.source.Vector();
+    var markerLayer = new ol.layer.Vector({ source: markerSource });
+    map.addLayer(markerLayer);
+
+           function insaatlariHaritayaYukle() {
+        fetch('/Harita/InsaatlariGetir')
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    markerSource.clear();
+
+                    // 1. Tüm koordinatları topla
+                    var koordinatlar = [];
+                    data.data.forEach(function(insaat) {
+                        var x = parseFloat(insaat.koordinatX);
+                        var y = parseFloat(insaat.koordinatY);
+                        if(!isNaN(x) && !isNaN(y)) {
+                            koordinatlar.push(Cesium.Cartographic.fromDegrees(x, y));
+                        }
+                    });
+
+                    // 2. Arazinin yüksekliklerini hesapla
+                    var terrainProvider = Cesium.createWorldTerrain();
+                    var promise = Cesium.sampleTerrainMostDetailed(terrainProvider, koordinatlar);
+
+                    promise.then(function(guncelKoordinatlar) {
+                        // 3. Yükseklikleri hesaplanan koordinatlarla evleri oluştur
+                        data.data.forEach(function(insaat, index) {
+                            var x = parseFloat(insaat.koordinatX);
+                            var y = parseFloat(insaat.koordinatY);
+
+                            if(!isNaN(x) && !isNaN(y)) {
+                                var yukseklik = guncelKoordinatlar[index].height;
+
+                                // Yüksekliği OpenLayers koordinat sistemine uygun hale getir
+                                var nokta = ol.proj.fromLonLat([x, y]);
+                                nokta.push(yukseklik); // Yüksekliği ekle
+
+                                var feature = new ol.Feature({
+                                    geometry: new ol.geom.Point(nokta),
+                                    insaatBilgisi: insaat
+                                });
+
+                                // ... (Evlerin renk ve SVG ayarları aynı kalacak) ...
+                                var catiRengi = '#f1c40f';
+                                if(insaat.durumId === 0) catiRengi = '#e74c3c';
+                                if(insaat.durumId === 2) catiRengi = '#2ecc71';
+
+                                var svg3DBina = `
+                                <svg width="56" height="64" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
+                                    <polygon points="50,55 15,35 15,75 50,95" fill="#95a5a6" />
+                                    <polygon points="50,55 85,35 85,75 50,95" fill="#ecf0f1" />
+                                    <polygon points="50,15 15,35 50,55 85,35" fill="${catiRengi}" />
+                                    <polygon points="25,48 35,54 35,64 25,58" fill="#2c3e50" />
+                                    <polygon points="25,68 35,74 35,84 25,78" fill="#2c3e50" />
+                                    <polygon points="75,48 65,54 65,64 75,58" fill="#bdc3c7" />
+                                    <polygon points="75,68 65,74 65,84 75,78" fill="#bdc3c7" />
+                                </svg>`;
+
+                                var ikonUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg3DBina);
+
+                                var stil = new ol.style.Style({
+                                    image: new ol.style.Icon({
+                                        src: ikonUrl,
+                                        scale: 1,
+                                        anchor: [0.5, 0.9]
+                                    })
+                                });
+
+                                feature.setStyle(stil);
+
+                                // Bu komutu tekrar ekliyoruz, artık yüksekliği bildiği için çalışacak
+                                feature.set('olcs_altitudeMode', 'clampToGround');
+
+
+                                markerSource.addFeature(feature);
+                            }
+                        });
+                    });
+                }
+            })
+            .catch(error => console.error(error));
+    }
+    insaatlariHaritayaYukle();
+
+           document.getElementById('btnAnaGorunum').addEventListener('click', function() {
+        if (window.ol3d && window.ol3d.getEnabled()) {
+            var cesiumCamera = window.ol3d.getCesiumScene().camera;
+            cesiumCamera.flyTo({
+                destination: Cesium.Cartesian3.fromDegrees(32.8597, 39.9208, 150000),
+                orientation: {
+                    heading: Cesium.Math.toRadians(0),
+                    pitch: Cesium.Math.toRadians(-90),
+                    roll: 0.0
+                },
+                duration: 1.2
+            });
+        }
+    
+        else {
+            haritaGorunumu.animate({
+                center: ankaraMerkez,
+                zoom: 9,
+                rotation: 0,
+                duration: 1200
+            });
+        }
+    });
+       window.CESIUM_BASE_URL = 'https://cesium.com/downloads/cesiumjs/releases/1.105/Build/Cesium/';
+    var btn2D3D = document.getElementById('btn2D3D');
+
+    window.addEventListener('load', function() {
+        try {
+            if (typeof olcs === 'undefined') {
+                btn2D3D.title = '3D kullanılamıyor';
+                btn2D3D.style.opacity = '0.5';
+                return;
+            }
+
+            btn2D3D.addEventListener('click', function() {
+        // Hata vermemesi için her yerde window.ol3d kullanıyoruz
+        if (!window.ol3d) {
+            map.getOverlays().clear();
+            window.ol3d = new olcs.OLCesium({ map: map });
+            window.ol3d.getCesiumScene().terrainProvider = Cesium.createWorldTerrain();
+
+            var cesiumSahnesi = window.ol3d.getCesiumScene();
+
+            // 1. UYARIYI ÇÖZEN YENİ KOD: Artık Async (yeni nesil) komutu kullanıyoruz
+            Cesium.createWorldTerrainAsync().then(function(terrainProvider) {
+                cesiumSahnesi.terrainProvider = terrainProvider;
+            });
+
+            // KRİTİK AYAR: Evlerin toprağa gömülmesini engeller
+            cesiumSahnesi.globe.depthTestAgainstTerrain = false;
+        }
+
+        // 2. HATAYI ÇÖZEN KISIM: Kesinlikle window.ol3d üzerinden okuyoruz
+        var suAn3Dmi = window.ol3d.getEnabled();
+
+        if (suAn3Dmi) {
+            window.ol3d.setEnabled(false);
+            overlay.setPosition(undefined);
+            btn2D3D.innerText = '3D';
+            btn2D3D.title = '3D Görünüme Geç';
+        } else {
+            window.ol3d.setEnabled(true);
+            btn2D3D.innerText = '2D';
+            btn2D3D.title = '2D Görünüme Geç';
+        }
+    
+        });
+
+        var sagTikMenu = document.getElementById('sagTikMenu');
+    var tiklananKoordinat = null;
+
+    // Sağ tık olayını 2D tuvaline değil, en dış HTML kutusuna ('map') bağlıyoruz!
+    document.getElementById('map').addEventListener('contextmenu', function (e) {
+        e.preventDefault(); // Tarayıcı menüsünü engelle
+
+        // 1. Senin Menü Açma Kodların (Aynen koruduk)
+        sagTikMenu.style.left = e.clientX + 'px';
+        sagTikMenu.style.top = e.clientY + 'px';
+        sagTikMenu.style.display = 'block';
+
+        // 2. Akıllı Koordinat Okuyucu (3D mi 2D mi?)
+       if (typeof window.ol3d !== 'undefined' && window.ol3d.getEnabled()) {
+            // --- 3D (CESIUM) MODUNDAYSAK ---
+            var viewer = ol3d.getCesiumScene();
+            var clickPozisyonu = new Cesium.Cartesian2(e.clientX, e.clientY);
+            var cartesian = viewer.camera.pickEllipsoid(clickPozisyonu, viewer.globe.ellipsoid);
+
+            if (cartesian) {
+                var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+                var lon = Cesium.Math.toDegrees(cartographic.longitude);
+                var lat = Cesium.Math.toDegrees(cartographic.latitude);
+                tiklananKoordinat = [lon, lat]; // Senin değişkenine atadık
+            }
+        } else {
+            // --- 2D (OPENLAYERS) MODUNDAYSAK ---
+            var tiklananPiksel = map.getEventCoordinate(e);
+            if (tiklananPiksel) {
+                tiklananKoordinat = ol.proj.toLonLat(tiklananPiksel); // Senin değişkenine atadık
+            }
+        }
+    });
+
+        document.addEventListener('pointerdown', function(e) {
+        // Eğer menü açıksa VE tıklanan yer menünün İÇİNDE DEĞİLSE menüyü kapat
+        if (sagTikMenu.style.display === 'block' && !sagTikMenu.contains(e.target)) {
+            sagTikMenu.style.display = 'none';
+        }
+    });
+
+
+    
+    document.getElementById('btnInsaatBaslat').addEventListener('click', function() {
+        sagTikMenu.style.display = 'none';
+        if(tiklananKoordinat) {
+            var x = tiklananKoordinat[0].toFixed(6);
+            var y = tiklananKoordinat[1].toFixed(6);
+
+            document.getElementById('gizliKoordinatX').value = x.replaceAll('.', ',');
+            document.getElementById('gizliKoordinatY').value = y.replaceAll('.', ',');
+            document.getElementById('koordinatBilgiMetni').innerHTML = "📍 Seçilen Konum: X: " + x + " | Y: " + y;
+            Metro.dialog.open('#insaatDialog');
+        }
+    });
+
+    
+        var geciciPinSource = new ol.source.Vector();
+        var geciciPinLayer = new ol.layer.Vector({ source: geciciPinSource, zIndex: 999 });
+        map.addLayer(geciciPinLayer);
+        var sonKoordinatMetni = '';
+
+        document.getElementById('btnKoordinatEkle').addEventListener('click', function() {
+            sagTikMenu.style.display = 'none';
+            if(!tiklananKoordinat) return;
+
+            var lon = tiklananKoordinat[0].toFixed(6);
+            var lat = tiklananKoordinat[1].toFixed(6);
+            sonKoordinatMetni = 'Lon: ' + lon + ' | Lat: ' + lat;
+
+            
+            var nokta = ol.proj.fromLonLat([parseFloat(lon), parseFloat(lat)]);
+            var pinFeature = new ol.Feature({ geometry: new ol.geom.Point(nokta) });
+            pinFeature.setStyle(new ol.style.Style({
+                image: new ol.style.Circle({
+                    radius: 8,
+                    fill: new ol.style.Fill({ color: '#e74c3c' }),
+                    stroke: new ol.style.Stroke({ color: 'white', width: 2 })
+                })
+            }));
+            pinFeature.set('koordinatPini', true); 
+            geciciPinSource.addFeature(pinFeature);
+
+            
+            var pixel = map.getPixelFromCoordinate(nokta);
+            var popup = document.getElementById('koordinat-popup');
+            document.getElementById('koordinat-popup-icerik').innerHTML =
+                '📍 <b>Koordinat</b><br>' +
+                'Boylam: ' + lon + '<br>' +
+                'Enlem: ' + lat;
+            popup.style.left = (pixel[0] + 10) + 'px';
+            popup.style.top = (pixel[1] - 80) + 'px';
+            popup.style.display = 'block';
+        });
+
+        function koordinatiKopyala() {
+            navigator.clipboard.writeText(sonKoordinatMetni).then(function() {
+                Metro.toast.create("Koordinat kopyalandı!", null, 1500, "bg-green fg-white");
+            });
+        }
+
+        function koordinatPopupuKapat() {
+            document.getElementById('koordinat-popup').style.display = 'none';
+        }
+
+        
+        document.getElementById('btnKaydet').addEventListener('click', function(e) {
+            e.preventDefault();
+            var formElemani = document.getElementById('frmInsaatEkle');
+            var formVerileri = new FormData(formElemani);
+            fetch('/Harita/InsaatEkle', {
+                method: 'POST',
+                body: formVerileri
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    Metro.dialog.close('#insaatDialog');
+                    formElemani.reset();
+                    Metro.notify.create("İnşaat başarıyla veritabanına kaydedildi!", "Başarılı", { cls: "success" });
+                    insaatlariHaritayaYukle();
+                } else {
+                    Metro.notify.create("Hata oluştu: " + data.message, "Hata", { cls: "alert" });
+                }
+            })
+            .catch(error => {
+                Metro.notify.create("Sunucuya bağlanılamadı.", "Bağlantı Hatası", { cls: "alert" });
+            });
+        });
+            function durumDegistir(id, yeniId) {
+        var formVerisi = new FormData();
+        formVerisi.append("id", id);
+        formVerisi.append("yeniDurumId", yeniId);
+
+        fetch('/Harita/DurumGuncelle', { method: 'POST', body: formVerisi })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    Metro.notify.create("Durum güncellendi!", "Başarılı", { cls: "success" });
+                    insaatlariHaritayaYukle(); 
+                }
+            });
+    }
+
+    function insaatSil(id) {
+        if(!confirm("Bu inşaat kaydını tamamen silmek istediğinize emin misiniz?")) return;
+
+        var formVerisi = new FormData();
+        formVerisi.append("id", id);
+
+        fetch('/Harita/InsaatSil', { method: 'POST', body: formVerisi })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    overlay.setPosition(undefined); 
+                    Metro.notify.create("Kayıt silindi.", "Bilgi", { cls: "info" });
+                    insaatlariHaritayaYukle(); 
+                }
+            });
+    }
+        } catch (e) {
+            console.log(e);
+        }
+    });
+</script>

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PersonelSistemi.Models;
@@ -11,9 +12,11 @@ using PersonelSistemi.Models;
 namespace PersonelSistemi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260427102049_InsaatTablosuEklendi")]
+    partial class InsaatTablosuEklendi
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,9 +34,10 @@ namespace PersonelSistemi.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Aciklama")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("DurumId")
+                    b.Property<int>("Durum")
                         .HasColumnType("integer");
 
                     b.Property<string>("InsaatAdi")
@@ -41,6 +45,7 @@ namespace PersonelSistemi.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("InsaatTuru")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("KayitTarihi")
@@ -53,8 +58,6 @@ namespace PersonelSistemi.Migrations
                         .HasColumnType("double precision");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DurumId");
 
                     b.ToTable("Insaatlar");
                 });
@@ -87,28 +90,6 @@ namespace PersonelSistemi.Migrations
                     b.HasKey("objectid");
 
                     b.ToTable("b_personelleri");
-                });
-
-            modelBuilder.Entity("PersonelSistemi.Models.InsaatDurumu", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("DurumAdi")
-                        .HasColumnType("text")
-                        .HasColumnName("durum_adi");
-
-                    b.Property<string>("RenkKodu")
-                        .HasColumnType("text")
-                        .HasColumnName("renk_kodu");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("InsaatDurumlari");
                 });
 
             modelBuilder.Entity("PersonelSistemi.Models.Kullanici", b =>
@@ -163,17 +144,6 @@ namespace PersonelSistemi.Migrations
                     b.HasKey("objectid");
 
                     b.ToTable("Personeller");
-                });
-
-            modelBuilder.Entity("OtekSistem.Models.Insaat", b =>
-                {
-                    b.HasOne("PersonelSistemi.Models.InsaatDurumu", "InsaatDurumu")
-                        .WithMany()
-                        .HasForeignKey("DurumId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("InsaatDurumu");
                 });
 #pragma warning restore 612, 618
         }

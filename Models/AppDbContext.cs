@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OtekSistem.Models;
 
 namespace PersonelSistemi.Models
 {
@@ -9,5 +10,7 @@ namespace PersonelSistemi.Models
         public DbSet<Personel> Personeller { get; set; }
         public DbSet<BPersonel> BPersoneller { get; set; }
         public DbSet<Kullanici> Kullanicilar { get; set; }
+        public DbSet<Insaat> Insaatlar { get; set; }
+        public DbSet<InsaatDurumu> InsaatDurumlari { get; set; }
     }
 }
