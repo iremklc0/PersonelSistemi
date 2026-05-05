@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace PersonelSistemi.Models
 {
@@ -26,5 +27,7 @@ namespace PersonelSistemi.Models
         [StringLength(11, MinimumLength = 11, ErrorMessage = "TC Kimlik numarası tam 11 haneli olmalıdır!")]
         [Column("tc")]
         public string? tc { get; set; }
+        
+        public virtual ICollection<InsaatPersonel> InsaatPersonelleri { get; set; } = new List<InsaatPersonel>();
     }
 }

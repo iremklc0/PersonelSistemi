@@ -2,7 +2,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+using System.Collections.Generic;
 namespace OtekSistem.Models
 {
     [Table("Insaatlar")]
@@ -24,8 +24,12 @@ namespace OtekSistem.Models
         [ForeignKey("DurumId")]
         public virtual InsaatDurumu? InsaatDurumu { get; set; }
 
+
         public string? Aciklama { get; set; }
 
         public DateTime KayitTarihi { get; set; } = DateTime.Now;
+     
+        public virtual ICollection<PersonelSistemi.Models.InsaatPersonel> InsaatPersonelleri { get; set; } = new List<PersonelSistemi.Models.InsaatPersonel>();
+
     }
 }

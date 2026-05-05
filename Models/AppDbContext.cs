@@ -12,5 +12,6 @@ namespace PersonelSistemi.Models
         public DbSet<Kullanici> Kullanicilar { get; set; }
         public DbSet<Insaat> Insaatlar { get; set; }
         public DbSet<InsaatDurumu> InsaatDurumlari { get; set; }
+        public DbSet<InsaatPersonel> InsaatPersonelleri { get; set; }
     }
 }
