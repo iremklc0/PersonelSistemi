@@ -210,6 +210,52 @@
             z-index: 9999;
             position: relative;
         }
+
+    .personel-kutu {
+        margin: 8px 0;
+        padding: 10px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+    }
+
+    .personel-baslik {
+        font-size: 12px;
+        font-weight: bold;
+        color: #7f8c8d;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .personel-etiket {
+        display: inline-flex;
+        align-items: center;
+        background: #e3f2fd;
+        color: #1565c0;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        margin: 2px;
+        border: 1px solid #bbdefb;
+    }
+
+        .personel-etiket.b-tipi {
+            background: #fff3e0;
+            color: #e65100;
+            border-color: #ffe0b2;
+        }
+
+        .personel-etiket .cikar-btn {
+            margin-left: 6px;
+            cursor: pointer;
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+            .personel-etiket .cikar-btn:hover {
+                color: #c0392b;
+            }
 </style>
 
 <div class="container-fluid p-0 m-0">
@@ -217,7 +263,7 @@
         <button class="harita-butonu" id="btn2D3D" title="3D Görünüme Geç">3D</button>
         <button class="harita-butonu" id="btnAnaGorunum" title="Ankara Merkeze Dön"><span class="mif-home mif-2x"></span></button>
 
-        
+
         <div id="koordinat-popup">
             <div id="koordinat-popup-icerik"></div>
             <div style="margin-top:8px; display:flex; gap:5px;">
@@ -252,13 +298,16 @@
                     </select>
                 </div>
                 <div class="form-group mt-2">
-                    <label>Sorumlu Personeller</label>
-                    <select data-role="select" name="APersonelId" id="aPersonelSelect">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">👷 A Personelleri</label>
+                    <select name="secilenAPersoneller" id="aPersonelSelect" multiple style="height: 120px; width:100%; border:1px solid #ddd; border-radius:4px; padding:5px;">
                         <option value="">Seçiniz...</option>
                     </select>
-                    <select data-role="select" name="BPersonelId" id="bPersonelSelect">
+                </div>
+
+                <div class="form-group mt-2">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">👷 B Personelleri</label>
+                    <select name="secilenBPersoneller" id="bPersonelSelect" multiple style="height: 120px; width:100%; border:1px solid #ddd; border-radius:4px; padding:5px;">
                         <option value="">Seçiniz...</option>
-                    </select>
                     </select>
                 </div>
                 <input type="hidden" id="gizliKoordinatX" name="KoordinatX">
@@ -317,54 +366,18 @@
         return false;
     };
 
-                map.on('singleclick', function (evt) {
+                 map.on('singleclick', function (evt) {
         if (typeof window.ol3d !== 'undefined' && window.ol3d.getEnabled()) return;
-
         var feature = map.forEachFeatureAtPixel(evt.pixel, function (f) { return f; });
-
         if (feature) {
             if (feature.get('koordinatPini')) {
                 geciciPinSource.removeFeature(feature);
                 document.getElementById('koordinat-popup').style.display = 'none';
                 return;
             }
-
             if (feature.get('insaatBilgisi')) {
                 var insaat = feature.get('insaatBilgisi');
-                var geometri = feature.getGeometry();
-                var koordinat = geometri.getType() === 'Polygon' ? ol.extent.getCenter(geometri.getExtent()) : geometri.getCoordinates();
-
-                // ✅ PERSONEL BİLGİSİ EKLE
-                var personelListesi = insaat.personeller || insaat.Personeller || [];
-                var personelMetni = (personelListesi.length > 0)
-                    ? personelListesi.map(p => "👷 " + (p.adSoyad || p.AdSoyad)).join("<br>")
-                    : "<i style='color:#95a5a6; font-size:12px;'>Henüz personel atanmamış</i>";
-
-                content.innerHTML = `
-                    <h5 style="margin: 0 0 5px 0; color: #2c3e50;"><b>🏢 ${insaat.insaatAdi}</b></h5>
-                    <hr style="margin: 5px 0;">
-                    <p style="margin: 0; font-size: 14px;"><b>Türü:</b> ${insaat.insaatTuru}</p>
-                    <p style="margin: 0; font-size: 14px;"><b>Açıklama:</b> ${insaat.aciklama}</p>
-
-                    <!-- ✅ PERSONEL KUTUSU -->
-                    <div style="margin: 8px 0; padding: 6px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; font-size: 13px;">
-                        <b style="color:#34495e;">Sorumlu Personeller:</b><br>
-                        ${personelMetni}
-                    </div>
-
-                    <div style="margin-top: 10px;">
-                        <label style="font-size: 12px; font-weight: bold;">Durum Güncelle:</label>
-                        <select onchange="durumDegistir(${insaat.id}, this.value)" style="width: 100%; padding: 5px; margin-top: 5px;">
-                            <option value="0" ${insaat.durumId === 0 ? 'selected' : ''}>🔴 Durduruldu</option>
-                            <option value="1" ${insaat.durumId === 1 ? 'selected' : ''}>🟡 Devam Ediyor</option>
-                            <option value="2" ${insaat.durumId === 2 ? 'selected' : ''}>🟢 Tamamlandı</option>
-                        </select>
-                    </div>
-                    <button onclick="insaatSil(${insaat.id})" class="button alert mini" style="width: 100%; margin-top: 10px;">
-                        🗑️ İnşaatı Sil
-                    </button>
-                `;
-                overlay.setPosition(koordinat);
+                popupIcerikGoster(insaat, evt.coordinate);
             }
         } else {
             overlay.setPosition(undefined);
@@ -407,33 +420,7 @@
                         var lon = Cesium.Math.toDegrees(cartographic.longitude);
                         var lat = Cesium.Math.toDegrees(cartographic.latitude);
                         var olKoordinat = ol.proj.fromLonLat([lon, lat]);
-                        var personelListesi = insaat.personeller || insaat.Personeller;
-    var personelMetni = (personelListesi && personelListesi.length > 0)
-        ? personelListesi.map(p => "👷 " + (p.adSoyad || p.AdSoyad)).join("<br>")
-        : "<i style='color:#95a5a6; font-size:12px;'>Henüz personel atanmamış</i>";
-
-                        content.innerHTML = `
-                            <h5 style="margin: 0 0 5px 0; color: #2c3e50;"><b>🏢 ${insaat.insaatAdi}</b></h5>
-                            <hr style="margin: 5px 0;">
-                            <p style="margin: 0; font-size: 14px;"><b>Türü:</b> ${insaat.insaatTuru}</p>
-                            <p style="margin: 0; font-size: 14px;"><b>Açıklama:</b> ${insaat.aciklama}</p>
-                            <div style="margin: 8px 0; padding: 6px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; font-size: 13px;">
-            <b style="color:#34495e;">Sorumlu Personeller:</b><br>
-            ${personelMetni}
-        </div>
-                            <div style="margin-top: 10px;">
-                                <label style="font-size: 12px; font-weight: bold;">Durum Güncelle:</label>
-                                <select onchange="durumDegistir(${insaat.id}, this.value)" style="width: 100%; padding: 5px; margin-top: 5px;">
-                                    <option value="0" ${insaat.durumId === 0 ? 'selected' : ''}>🔴 Durduruldu</option>
-                                    <option value="1" ${insaat.durumId === 1 ? 'selected' : ''}>🟡 Devam Ediyor</option>
-                                    <option value="2" ${insaat.durumId === 2 ? 'selected' : ''}>🟢 Tamamlandı</option>
-                                </select>
-                            </div>
-                            <button onclick="insaatSil(${insaat.id})" class="button alert mini" style="width: 100%; margin-top: 10px;">
-                                🗑️ İnşaatı Sil
-                            </button>
-                        `;
-                        overlay.setPosition(olKoordinat);
+                        popupIcerikGoster(insaat, olKoordinat);
                     }
                 }
             } else {
@@ -441,9 +428,9 @@
             }
         }
     });
-    
-    
-    
+
+
+
 
     fetch('https://nominatim.openstreetmap.org/search?state=Ankara&country=Turkey&polygon_geojson=1&format=json')
         .then(response => response.json())
@@ -470,7 +457,7 @@
                 if(data.success) {
                     markerSource.clear();
 
-                   
+
                     var koordinatlar = [];
                     data.data.forEach(function(insaat) {
                         var x = parseFloat(insaat.koordinatX);
@@ -496,14 +483,14 @@
                                 // Yüksekliği OpenLayers koordinat sistemine uygun hale getir
                                     var nokta = ol.proj.fromLonLat([x, y]);
 
-    
+
 
                                 var feature = new ol.Feature({
                                     geometry: new ol.geom.Point(nokta),
                                     insaatBilgisi: insaat
                                 });
 
-                                
+
                                 var catiRengi = '#f1c40f';
                                 if(insaat.durumId === 0) catiRengi = '#e74c3c';
                                 if(insaat.durumId === 2) catiRengi = '#2ecc71';
@@ -531,7 +518,7 @@
 
                                 feature.setStyle(stil);
 
-                                
+
                                 feature.set('olcs_altitudeMode', 'clampToGround');
 
 
@@ -544,7 +531,7 @@
             .catch(error => console.error(error));
     }
     insaatlariHaritayaYukle();
-        
+
 
        function tekInsaatGuncelle(insaatId, yeniDurumId) {
         var features = markerSource.getFeatures();
@@ -577,7 +564,7 @@
             feature.set('insaatBilgisi', insaat);
             overlay.setPosition(undefined);
 
-            // ✅ Cesium senkronizasyonu - 3D tarafını güncelle
+            // Cesium senkronizasyonu - 3D tarafını güncelle
                         if (window.ol3d) {
                 var sahne = window.ol3d.getCesiumScene();
                 sahne.requestRender();
@@ -603,38 +590,68 @@
             overlay.setPosition(undefined);
         }
     }
-            function popupIcerikGoster(insaat, koordinat) {
-    // C# 'Personeller' de gönderse, 'personeller' de gönderse ikisini de yakala:
-    var personelListesi = insaat.personeller || insaat.Personeller;
 
-    var personelMetni = (personelListesi && personelListesi.length > 0)
-        ? personelListesi.map(p => "👷 " + (p.adSoyad || p.AdSoyad)).join("<br>")
-        : "<i style='color:#95a5a6; font-size:12px;'>Henüz personel atanmamış</i>";
-        // 2. İçeriği güncelle
-        content.innerHTML = `
-            <h5 style="margin: 0 0 5px 0; color: #2c3e50;"><b>🏢 ${insaat.insaatAdi}</b></h5>
-            <hr style="margin: 5px 0;">
-            <p style="margin: 0; font-size: 14px;"><b>Türü:</b> ${insaat.insaatTuru}</p>
-            <p style="margin: 0; font-size: 14px;"><b>Açıklama:</b> ${insaat.aciklama}</p>
+              function popupIcerikGoster(insaat, koordinat) {
+   
+                   var aPersonelListesi = insaat.aPersoneller || insaat.APersoneller || [];
+    var bPersonelListesi = insaat.bPersoneller || insaat.BPersoneller || [];
 
-            <!-- YENİ EKLENEN PERSONEL KUTUSU -->
-            <div style="margin: 8px 0; padding: 6px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; font-size: 13px;">
-                <b style="color:#34495e;">Sorumlu Personeller:</b><br>
-                ${personelMetni}
-            </div>
+        // A Personelleri HTML'i oluştur
+        var aPersonelMetni = "";
+        if (aPersonelListesi.length > 0) {
+            aPersonelMetni = aPersonelListesi.map(function(p) {
+                return '<span class="personel-etiket">👷 ' + p.adSoyad +
+                       ' <span class="cikar-btn" onclick="personelCikar(' + insaat.id + ', ' + p.id + ', \'A\')">×</span></span>';
+            }).join("");
+        } else {
+            aPersonelMetni = "<i style='color:#95a5a6; font-size:12px;'>Henüz A personeli atanmamış</i>";
+        }
 
-            <div style="margin-top: 10px;">
-                <label style="font-size: 12px; font-weight: bold;">Durum Güncelle:</label>
-                <select onchange="durumDegistir(${insaat.id}, this.value)" style="width: 100%; padding: 5px; margin-top: 5px;">
-                    <option value="0" ${insaat.durumId === 0 ? 'selected' : ''}>🔴 Durduruldu</option>
-                    <option value="1" ${insaat.durumId === 1 ? 'selected' : ''}>🟡 Devam Ediyor</option>
-                    <option value="2" ${insaat.durumId === 2 ? 'selected' : ''}>🟢 Tamamlandı</option>
-                </select>
-            </div>
-            <button onclick="insaatSil(${insaat.id})" class="button alert mini" style="width: 100%; margin-top: 10px;">
-                🗑️ İnşaatı Sil
-            </button>
-        `;
+        // B Personelleri HTML'i oluştur
+        var bPersonelMetni = "";
+        if (bPersonelListesi.length > 0) {
+            bPersonelMetni = bPersonelListesi.map(function(p) {
+                return '<span class="personel-etiket b-tipi">👷 ' + p.adSoyad +
+                       ' <span class="cikar-btn" onclick="personelCikar(' + insaat.id + ', ' + p.id + ', \'B\')">×</span></span>';
+            }).join("");
+        } else {
+            bPersonelMetni = "<i style='color:#95a5a6; font-size:12px;'>Henüz B personeli atanmamış</i>";
+        }
+
+        // Popup içeriğini oluştur
+        content.innerHTML =
+            '<h5 style="margin: 0 0 5px 0; color: #2c3e50;"><b>🏢 ' + insaat.insaatAdi + '</b></h5>' +
+            '<hr style="margin: 5px 0;">' +
+            '<p style="margin: 0; font-size: 14px;"><b>Türü:</b> ' + insaat.insaatTuru + '</p>' +
+            '<p style="margin: 0; font-size: 14px;"><b>Açıklama:</b> ' + insaat.aciklama + '</p>' +
+
+            // A PERSONELLER
+            '<div class="personel-kutu">' +
+            '<span class="personel-baslik">👷 A Sorumlu Personeller:</span>' +
+            '<div>' + aPersonelMetni + '</div>' +
+            '</div>' +
+
+            // B PERSONELLER
+            '<div class="personel-kutu">' +
+            '<span class="personel-baslik">👷 B Sorumlu Personeller:</span>' +
+            '<div>' + bPersonelMetni + '</div>' +
+            '</div>' +
+
+            // DURUM
+            '<div style="margin-top: 10px;">' +
+            '<label style="font-size: 12px; font-weight: bold;">Durum Güncelle:</label>' +
+            '<select onchange="durumDegistir(' + insaat.id + ', this.value)" style="width: 100%; padding: 5px; margin-top: 5px;">' +
+            '<option value="0" ' + (insaat.durumId === 0 ? 'selected' : '') + '>🔴 Durduruldu</option>' +
+            '<option value="1" ' + (insaat.durumId === 1 ? 'selected' : '') + '>🟡 Devam Ediyor</option>' +
+            '<option value="2" ' + (insaat.durumId === 2 ? 'selected' : '') + '>🟢 Tamamlandı</option>' +
+            '</select>' +
+            '</div>' +
+
+            // SİL BUTONU
+            '<button onclick="insaatSil(' + insaat.id + ')" class="button alert mini" style="width: 100%; margin-top: 10px;">' +
+            '🗑️ İnşaatı Sil' +
+            '</button>';
+
         overlay.setPosition(koordinat);
     }
         function tekInsaatEkle(insaat) {
@@ -685,7 +702,7 @@
                 duration: 1.2
             });
         }
-    
+
         else {
             haritaGorunumu.animate({
                 center: ankaraMerkez,
@@ -777,7 +794,7 @@
             }
         }
 
-        // 2D/3D toggle
+       
         try {
             var suAn3Dmi = window.ol3d.getEnabled();
 
@@ -801,18 +818,18 @@
         var sagTikMenu = document.getElementById('sagTikMenu');
     var tiklananKoordinat = null;
 
-    
-    document.getElementById('map').addEventListener('contextmenu', function (e) {
-        e.preventDefault(); 
 
-       
+    document.getElementById('map').addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+
+
         sagTikMenu.style.left = e.clientX + 'px';
         sagTikMenu.style.top = e.clientY + 'px';
         sagTikMenu.style.display = 'block';
 
-       
+
        if (typeof window.ol3d !== 'undefined' && window.ol3d.getEnabled()) {
-            
+
             var viewer = ol3d.getCesiumScene();
             var clickPozisyonu = new Cesium.Cartesian2(e.clientX, e.clientY);
             var cartesian = viewer.camera.pickEllipsoid(clickPozisyonu, viewer.globe.ellipsoid);
@@ -821,26 +838,26 @@
                 var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
                 var lon = Cesium.Math.toDegrees(cartographic.longitude);
                 var lat = Cesium.Math.toDegrees(cartographic.latitude);
-                tiklananKoordinat = [lon, lat]; 
+                tiklananKoordinat = [lon, lat];
             }
         } else {
-            
+
             var tiklananPiksel = map.getEventCoordinate(e);
             if (tiklananPiksel) {
-                tiklananKoordinat = ol.proj.toLonLat(tiklananPiksel); 
+                tiklananKoordinat = ol.proj.toLonLat(tiklananPiksel);
             }
         }
     });
 
         document.addEventListener('pointerdown', function(e) {
-        
+
         if (sagTikMenu.style.display === 'block' && !sagTikMenu.contains(e.target)) {
             sagTikMenu.style.display = 'none';
         }
     });
 
 
-    
+
     document.getElementById('btnInsaatBaslat').addEventListener('click', function() {
         sagTikMenu.style.display = 'none';
         if(tiklananKoordinat) {
@@ -854,10 +871,10 @@
         }
     });
 
-    
-        
+
+
     window.geciciPinSource = new ol.source.Vector();
-    var geciciPinSource = window.geciciPinSource; 
+    var geciciPinSource = window.geciciPinSource;
 
     var geciciPinLayer = new ol.layer.Vector({ source: window.geciciPinSource, zIndex: 999 });
     map.addLayer(geciciPinLayer);
@@ -896,7 +913,7 @@
         popup.style.display = 'block';
     });
 
-   
+
     window.koordinatiKopyala = function() {
         navigator.clipboard.writeText(window.sonKoordinatMetni).then(function() {
             Metro.toast.create("Koordinat kopyalandı!", null, 1500, "bg-green fg-white");
@@ -907,32 +924,57 @@
         var popup = document.getElementById('koordinat-popup');
         if (popup) popup.style.display = 'none';
     };
-        
-        document.getElementById('btnKaydet').addEventListener('click', function(e) {
-            e.preventDefault();
-            var formElemani = document.getElementById('frmInsaatEkle');
-            var formVerileri = new FormData(formElemani);
-            fetch('/Harita/InsaatEkle', {
-                method: 'POST',
-                body: formVerileri
-            })
-            .then(response => response.json())
-                        .then(data => {
-                if(data.success) {
-                    Metro.dialog.close('#insaatDialog');
-                    formElemani.reset();
-                    var notify = Metro.notify.create("İnşaat başarıyla veritabanına kaydedildi!", "Başarılı", { cls: "success" }); setTimeout(function() { if(notify && notify.close) notify.close(); }, 3000);
-                    tekInsaatEkle(data.data);
-                }else {
-                    Metro.notify.create("Hata oluştu: " + data.message, "Hata", { cls: "alert" });
-                }
-            })
-            .catch(error => {
-                Metro.notify.create("Sunucuya bağlanılamadı.", "Bağlantı Hatası", { cls: "alert" });
+                     document.getElementById('btnKaydet').addEventListener('click', function(e) {
+        e.preventDefault();
+        var formElemani = document.getElementById('frmInsaatEkle');
+        var formVerileri = new FormData(formElemani);
+
+        //  A ve B listesindeki seçimleri C#'ın anlayacağı formata (List<int>) çeviriyoruz
+        formVerileri.delete('secilenAPersoneller'); 
+        formVerileri.delete('secilenBPersoneller');
+
+        var aSelect = document.getElementById('aPersonelSelect');
+        if (aSelect) {
+            Array.from(aSelect.selectedOptions).forEach(function(opt) {
+                if (opt.value) formVerileri.append('secilenAPersoneller', opt.value);
             });
-        });
-                   window.durumDegistir = function(id, yeniId) {
+        }
+
+        var bSelect = document.getElementById('bPersonelSelect');
+        if (bSelect) {
+            Array.from(bSelect.selectedOptions).forEach(function(opt) {
+                if (opt.value) formVerileri.append('secilenBPersoneller', opt.value);
+            });
+        }
         
+
+        fetch('/Harita/InsaatEkle', {
+            method: 'POST',
+            body: formVerileri
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                Metro.dialog.close('#insaatDialog');
+                formElemani.reset();
+
+                // Başarılı kayıttan sonra formdaki A ve B kutularını da sıfırlayalım ki yeni kayıtta eski isimler kalmasın
+                    if (aSelect) aSelect.selectedIndex = -1;
+    if (bSelect) bSelect.selectedIndex = -1;
+
+                var notify = Metro.notify.create("İnşaat başarıyla veritabanına kaydedildi!", "Başarılı", { cls: "success" });
+                setTimeout(function() { if(notify && notify.close) notify.close(); }, 3000);
+                tekInsaatEkle(data.data);
+            } else {
+                Metro.notify.create("Hata oluştu: " + data.message, "Hata", { cls: "alert" });
+            }
+        })
+        .catch(error => {
+            Metro.notify.create("Sunucuya bağlanılamadı.", "Bağlantı Hatası", { cls: "alert" });
+        });
+    });
+
+    window.durumDegistir = function(id, yeniId) {
         var formVerisi = new FormData();
         formVerisi.append("id", id);
         formVerisi.append("yeniDurumId", yeniId);
@@ -941,18 +983,17 @@
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
-                       var notify = Metro.notify.create("Durum güncellendi!", "Başarılı", { cls: "success" });
-    setTimeout(function() {
-        if(notify && notify.close) notify.close();
-    }, 3000);
-    tekInsaatGuncelle(id, yeniId);
+                    var notify = Metro.notify.create("Durum güncellendi!", "Başarılı", { cls: "success" });
+                    setTimeout(function() {
+                        if(notify && notify.close) notify.close();
+                    }, 3000);
+                    tekInsaatGuncelle(id, yeniId);
                 }
             })
             .catch(err => console.error(err));
     };
-
     window.insaatSil = function(id) {
-        
+
         if (window.event) { window.event.preventDefault(); }
 
         if(!confirm("Bu inşaat kaydını tamamen silmek istediğinize emin misiniz?")) return;
@@ -967,7 +1008,7 @@
             })
             .then(data => {
                 if(data.success) {
-                    
+
                     if (typeof overlay !== 'undefined') overlay.setPosition(undefined);
                     var notify = Metro.notify.create("Kayıt silindi.", "Bilgi", { cls: "info" }); setTimeout(function() { if(notify && notify.close) notify.close(); }, 3000);
                      tekInsaatSil(id);
@@ -980,38 +1021,87 @@
                 Metro.notify.create("Sunucu bağlantı hatası.", "Hata", { cls: "alert" });
             });
     };
+        window.personelCikar = function(insaatId, personelId, tip) {
+        if (!confirm("Bu personeli inşaattan çıkarmak istediğinize emin misiniz?")) return;
+
+        var formVerisi = new FormData();
+        formVerisi.append("insaatId", insaatId);
+        formVerisi.append("personelId", personelId);
+        formVerisi.append("personelTipi", tip);
+
+        fetch('/Harita/PersonelCikar', { method: 'POST', body: formVerisi })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Metro.notify.create("Personel çıkarıldı", "Bilgi", { cls: "info" });
+                    var feature = markerSource.getFeatures().find(function(f) {
+                        var bilgi = f.get('insaatBilgisi');
+                        return bilgi && bilgi.id === insaatId;
+                    });
+                    if (feature) {
+                        feature.set('insaatBilgisi', data.data);
+                        var geom = feature.getGeometry();
+                        var koord = geom.getCoordinates();
+                        popupIcerikGoster(data.data, koord);
+                    }
+                } else {
+                    Metro.notify.create("Hata: " + data.message, "Hata", { cls: "alert" });
+                }
+            })
+            .catch(function(err) {
+                console.error(err);
+                Metro.notify.create("Bağlantı hatası", "Hata", { cls: "alert" });
+            });
+    };
         } catch (e) {
             console.log(e);
         }
     });
         // Sayfa yüklendiğinde veritabanındaki personelleri çekip formdaki select kutusunu doldurur
-       document.addEventListener("DOMContentLoaded", function() {
-                fetch('/Harita/PersonelleriGetir')
-            .then(res => res.json())
-            .then(data => {
+              document.addEventListener("DOMContentLoaded", function() {
+        fetch('/Harita/PersonelleriGetir')
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
                 if (data.success) {
-                    var aSelect = document.getElementById('aPersonelSelect');
-                    var bSelect = document.getElementById('bPersonelSelect');
+                    tumAPersoneller = data.aPersoneller || [];
+                    tumBPersoneller = data.bPersoneller || [];
 
-                    if(aSelect && data.aPersoneller) {
-                        data.aPersoneller.forEach(p => {
-                            var option = document.createElement('option');
-                            option.value = p.id;
-                            option.text = p.adSoyad;
-                            aSelect.appendChild(option);
+                    var aSelectEl = document.getElementById('aPersonelSelect');
+                    var bSelectEl = document.getElementById('bPersonelSelect');
+
+                    if (aSelectEl) {
+                        aSelectEl.innerHTML = '<option value="">Seçiniz...</option>';
+                        tumAPersoneller.forEach(function(p) {
+                            var opt = document.createElement('option');
+                            opt.value = p.id;
+                            opt.textContent = p.adSoyad;
+                            aSelectEl.appendChild(opt);
                         });
+                        if (typeof Metro !== 'undefined') {
+                            var plugin = Metro.getPlugin(aSelectEl, 'select');
+                            if (plugin) plugin.reset();
+                        }
                     }
 
-                    if(bSelect && data.bPersoneller) {
-                        data.bPersoneller.forEach(p => {
-                            var option = document.createElement('option');
-                            option.value = p.id;
-                            option.text = p.adSoyad;
-                            bSelect.appendChild(option);
+                    if (bSelectEl) {
+                        bSelectEl.innerHTML = '<option value="">Seçiniz...</option>';
+                        tumBPersoneller.forEach(function(p) {
+                            var opt = document.createElement('option');
+                            opt.value = p.id;
+                            opt.textContent = p.adSoyad;
+                            bSelectEl.appendChild(opt);
                         });
+                        if (typeof Metro !== 'undefined') {
+                            var plugin = Metro.getPlugin(bSelectEl, 'select');
+                            if (plugin) plugin.reset();
+                        }
                     }
                 }
             })
-            .catch(err => console.error("Personeller yüklenirken hata:", err));
+            .catch(function(err) {
+                console.error("Personeller yüklenirken hata:", err);
+            });
     });
+
 </script>
+

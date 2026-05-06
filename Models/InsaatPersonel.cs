@@ -16,6 +16,6 @@ namespace PersonelSistemi.Models
 
         public int PersonelId { get; set; }
         [ForeignKey("PersonelId")]
-        public virtual Personel? Personel { get; set; }
+        public virtual Personel? Personel { get; set; } = null!;
     }
 }

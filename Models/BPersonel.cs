@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace PersonelSistemi.Models
 {
@@ -21,5 +22,7 @@ namespace PersonelSistemi.Models
 
         [Column("tc")]
         public string? tc { get; set; }
+
+        public virtual ICollection<InsaatBPersonel> InsaatBPersonelleri { get; set; } = new List<InsaatBPersonel>();  // YENİ
     }
 }
