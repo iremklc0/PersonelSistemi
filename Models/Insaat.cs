@@ -30,6 +30,9 @@ namespace OtekSistem.Models
         public DateTime KayitTarihi { get; set; } = DateTime.Now;
 
         public virtual ICollection<InsaatPersonel> InsaatPersonelleri { get; set; } = new List<InsaatPersonel>();
-        public virtual ICollection<InsaatBPersonel> InsaatBPersonelleri { get; set; } = new List<InsaatBPersonel>();  // YENİ
+        public virtual ICollection<InsaatBPersonel> InsaatBPersonelleri { get; set; } = new List<InsaatBPersonel>();
+        
+        public DateTime? BaslamaTarihi { get; set; }
+        public int TamamlanmaYuzdesi { get; set; } = 0; 
     }
 }

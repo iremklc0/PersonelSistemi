@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PersonelSistemi.Models;
@@ -11,9 +12,11 @@ using PersonelSistemi.Models;
 namespace PersonelSistemi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260507063145_KonteynerModelleriEklendi")]
+    partial class KonteynerModelleriEklendi
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -180,9 +183,6 @@ namespace PersonelSistemi.Migrations
 
                     b.Property<double>("Enlem")
                         .HasColumnType("double precision");
-
-                    b.Property<DateTime>("KayitTarihi")
-                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
