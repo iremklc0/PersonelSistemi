@@ -306,7 +306,8 @@ function popupIcerikGoster(insaat, koordinat) {
         '<h5 style="margin: 0 0 5px 0; color: #2c3e50;"><b>🏢 ' + insaat.insaatAdi + '</b></h5>' +
         '<hr style="margin: 5px 0;">' +
         '<p style="margin: 0; font-size: 14px;"><b>Türü:</b> ' + insaat.insaatTuru + '</p>' +
-        '<p style="margin: 0; font-size: 14px;"><b>Açıklama:</b> ' + insaat.aciklama + '</p>' +
+    '<p style="margin: 0; font-size: 14px;"><b>Açıklama:</b> ' + insaat.aciklama + '</p>' +
+    (insaat.baslamaTarihi ? '<p style="margin: 0; font-size: 14px;"><b>Başlama Tarihi:</b> ' + new Date(insaat.baslamaTarihi).toLocaleDateString('tr-TR') + '</p>' : '') +
 
         (aPersonelMetni ? '<div class="personel-kutu">' +
             '<span class="personel-baslik">👷 A Sorumlu Personeller:</span>' +
@@ -325,7 +326,15 @@ function popupIcerikGoster(insaat, koordinat) {
         '<option value="1" ' + (insaat.durumId === 1 ? 'selected' : '') + '>🟡 Devam Ediyor</option>' +
         '<option value="2" ' + (insaat.durumId === 2 ? 'selected' : '') + '>🟢 Tamamlandı</option>' +
         '</select>' +
+    '</div>' +
+    (insaat.durumId === 1 ?
+        '<div style="margin-top: 8px;">' +
+        '<label style="font-size: 12px; font-weight: bold;">Tamamlanma Yüzdesi:</label>' +
+        '<div style="display:flex; gap:5px; margin-top:5px;">' +
+        '<input type="number" id="tamamlanmaYuzdesi" min="0" max="100" value="' + (insaat.tamamlanmaYuzdesi || 0) + '" style="width:70%; padding:5px;">' +
+        '<button onclick="yuzdeyiGuncelle(' + insaat.id + ')" style="padding:5px 10px; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer;">💾</button>' +
         '</div>' +
+        '</div>' : '') +
 
         '<div class="personel-kutu" style="margin-top:8px;">' +
         '<span class="personel-baslik">➕ A Personeli Ekle:</span>' +
@@ -548,6 +557,27 @@ window.addEventListener('load', function () {
             btn2D3D.style.opacity = '0.5';
             return;
         }
+        document.getElementById('btnKatmanYonetimi').addEventListener('click', function (e) {
+            e.stopPropagation();
+            var panel = document.getElementById('katmanPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.addEventListener('click', function (e) {
+            var panel = document.getElementById('katmanPanel');
+            var btn = document.getElementById('btnKatmanYonetimi');
+            if (!panel.contains(e.target) && e.target !== btn) {
+                panel.style.display = 'none';
+            }
+        });
+
+        document.getElementById('chkInsaatlar').addEventListener('change', function () {
+            markerLayer.setVisible(this.checked);
+        });
+
+        document.getElementById('chkKonteynerler').addEventListener('change', function () {
+            konteynerLayer.setVisible(this.checked);
+        });
 
         btn2D3D.addEventListener('click', function () {
             
@@ -871,6 +901,28 @@ window.addEventListener('load', function () {
                     }
                 })
                 .catch(err => console.error(err));
+        };
+        window.yuzdeyiGuncelle = function (id) {
+            var yuzde = document.getElementById('tamamlanmaYuzdesi').value;
+            var formVerisi = new FormData();
+            formVerisi.append("id", id);
+            formVerisi.append("yuzde", yuzde);
+            fetch('/Harita/YuzdeGuncelle', { method: 'POST', body: formVerisi })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var notify = Metro.notify.create("Yüzde güncellendi!", "Başarılı", { cls: "success" });
+                        setTimeout(function () { if (notify && notify.close) notify.close(); }, 3000);
+                        var feature = markerSource.getFeatures().find(function (f) {
+                            return f.get('insaatBilgisi') && f.get('insaatBilgisi').id === id;
+                        });
+                        if (feature) {
+                            feature.set('insaatBilgisi', data.data);
+                        }
+                    } else {
+                        Metro.notify.create("Hata: " + data.message, "Hata", { cls: "alert" });
+                    }
+                });
         };
         window.insaatSil = function (id) {
             if (window.silmeBekleniyor) return;

@@ -48,7 +48,8 @@ namespace PersonelSistemi.Controllers
                         yeniInsaat.InsaatBPersonelleri.Add(new InsaatBPersonel { BPersonelId = bPersonelId });
                     }
                 }
-
+                if (yeniInsaat.BaslamaTarihi.HasValue)
+                    yeniInsaat.BaslamaTarihi = yeniInsaat.BaslamaTarihi.Value.ToUniversalTime();
                 _context.Insaatlar.Add(yeniInsaat);
                 _context.SaveChanges();
 
@@ -86,6 +87,8 @@ namespace PersonelSistemi.Controllers
                         x.InsaatDurumu,
                         x.Aciklama,
                         x.KayitTarihi,
+                        x.BaslamaTarihi,
+                        x.TamamlanmaYuzdesi,
                         //  Ayrı ayrı personel listeleri
                         APersoneller = x.InsaatPersonelleri.Select(ip => new {
                             id = ip.Personel!.objectid,
@@ -540,10 +543,22 @@ namespace PersonelSistemi.Controllers
                 InsaatDurumu = insaat.InsaatDurumu,
                 Aciklama = insaat.Aciklama,
                 KayitTarihi = insaat.KayitTarihi,
+                BaslamaTarihi = insaat.BaslamaTarihi,
+                TamamlanmaYuzdesi = insaat.TamamlanmaYuzdesi,
                 APersoneller = aPersoneller,
                 BPersoneller = bPersoneller,
-                Personeller = aPersoneller 
+                Personeller = aPersoneller
             };
+        }
+        [HttpPost]
+        public IActionResult YuzdeGuncelle(int id, int yuzde)
+        {
+            var insaat = _context.Insaatlar.Find(id);
+            if (insaat == null) return Json(new { success = false });
+            insaat.TamamlanmaYuzdesi = yuzde;
+            _context.SaveChanges();
+            var guncelInsaat = GetInsaatDto(id);
+            return Json(new { success = true, data = guncelInsaat });
         }
 
     }
