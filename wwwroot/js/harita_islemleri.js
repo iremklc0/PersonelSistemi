@@ -81,6 +81,12 @@ document.getElementById('map').addEventListener('pointerup', function (e) {
             var feature = pickedObject.primitive.olFeature ||
                 (pickedObject.id ? pickedObject.id.olFeature : null);
 
+
+            if (feature && feature.get('koordinatPini')) {
+                geciciPinSource.removeFeature(feature);
+                document.getElementById('koordinat-popup').style.display = 'none';
+                return;
+            }
             if (feature && feature.get('insaatBilgisi')) {
                 var insaat = feature.get('insaatBilgisi');
                 var cartesian = cesiumScene.camera.pickEllipsoid(
