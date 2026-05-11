@@ -774,7 +774,7 @@ window.addEventListener('load', function () {
             var formElemani = document.getElementById('frmInsaatEkle');
             var formVerileri = new FormData(formElemani);
 
-            //  A ve B listesindeki seçimleri C#'ın anlayacağı formata (List<int>) çeviriyoruz
+           
             formVerileri.delete('secilenAPersoneller');
             formVerileri.delete('secilenBPersoneller');
 
@@ -887,7 +887,7 @@ window.addEventListener('load', function () {
 
           
 
-            // Görünür olan input'u bul (2D'de tek, 3D'de duplikasyondan biri)
+          
             var tumInputlar = document.querySelectorAll('#tamamlanmaYuzdesi');
             var yuzde = '';
             var modu3D = window.ol3d && window.ol3d.getEnabled();
@@ -895,9 +895,9 @@ window.addEventListener('load', function () {
             for (var i = 0; i < tumInputlar.length; i++) {
                 var inp = tumInputlar[i];
                 var rect = inp.getBoundingClientRect();
-                // Görünür olan input'u al (genişliği/yüksekliği 0 olmayan)
+                
                 if (rect.width > 0 && rect.height > 0) {
-                    // 3D'deyse son görünür input'u al, 2D'deyse ilk görünür input'u
+                  
                     if (modu3D) {
                         yuzde = inp.value;
                     } else if (!yuzde) {
@@ -959,8 +959,12 @@ window.addEventListener('load', function () {
                 });
         };
         window.personelCikar = function (insaatId, personelId, tip) {
-            if (!confirm("Bu personeli inşaattan çıkarmak istediğinize emin misiniz?")) return;
+            
+            if (window.personelCikarKilit) return;
+            window.personelCikarKilit = true;
+            setTimeout(function () { window.personelCikarKilit = false; }, 1000);
 
+            if (!confirm("Bu personeli inşaattan çıkarmak istediğinize emin misiniz?")) return;
             var formVerisi = new FormData();
             formVerisi.append("insaatId", insaatId);
             formVerisi.append("personelId", personelId);
@@ -1030,6 +1034,11 @@ window.addEventListener('load', function () {
                 });
         };
         window.konteynerSil = function (id) {
+           
+            if (window.konteynerSilKilit) return;
+            window.konteynerSilKilit = true;
+            setTimeout(function () { window.konteynerSilKilit = false; }, 1000);
+
             if (!confirm("Bu konteyneri silmek istediğinize emin misiniz?")) return;
             var formVerisi = new FormData();
             formVerisi.append("id", id);
@@ -1053,6 +1062,12 @@ window.addEventListener('load', function () {
 
         window.konteynerPersonelEkle = function (konteynerId, personelId, tip) {
             if (!personelId || personelId === '' || personelId === 'undefined') return;
+
+            
+            if (window.konteynerPersonelKilit) return;
+            window.konteynerPersonelKilit = true;
+            setTimeout(function () { window.konteynerPersonelKilit = false; }, 1000);
+
             var formVerisi = new FormData();
             formVerisi.append("konteynerId", konteynerId);
             formVerisi.append("personelId", personelId);
@@ -1077,6 +1092,11 @@ window.addEventListener('load', function () {
         };
 
         window.konteynerPersonelCikar = function (konteynerId, personelId, tip) {
+            
+            if (window.konteynerCikarKilit) return;
+            window.konteynerCikarKilit = true;
+            setTimeout(function () { window.konteynerCikarKilit = false; }, 1000);
+
             if (!confirm("Bu personeli konteynerden çıkarmak istediğinize emin misiniz?")) return;
             var formVerisi = new FormData();
             formVerisi.append("konteynerId", konteynerId);
