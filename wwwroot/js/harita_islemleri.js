@@ -66,7 +66,7 @@ document.getElementById('map').addEventListener('pointermove', function () {
 document.getElementById('map').addEventListener('pointerup', function (e) {
     if (fareSurukleniyorMu || e.button !== 0) return;
 
-    
+
     if (window.ol3d && window.ol3d.getEnabled()) {
         var cesiumScene = window.ol3d.getCesiumScene();
         if (!cesiumScene.globe.tilesLoaded) return;
@@ -155,12 +155,12 @@ function insaatlariHaritayaYukle() {
                     }
                 });
 
-                
+
                 var terrainProvider = Cesium.createWorldTerrain();
                 var promise = Cesium.sampleTerrainMostDetailed(terrainProvider, koordinatlar);
 
                 promise.then(function (guncelKoordinatlar) {
-                    
+
                     data.data.forEach(function (insaat, index) {
                         var x = parseFloat(insaat.koordinatX);
                         var y = parseFloat(insaat.koordinatY);
@@ -168,7 +168,7 @@ function insaatlariHaritayaYukle() {
                         if (!isNaN(x) && !isNaN(y)) {
                             var yukseklik = guncelKoordinatlar[index].height;
 
-                            
+
                             var nokta = ol.proj.fromLonLat([x, y]);
 
 
@@ -253,7 +253,7 @@ function tekInsaatGuncelle(insaatId, yeniDurumId) {
         feature.set('insaatBilgisi', insaat);
         overlay.setPosition(undefined);
 
-        
+
         if (window.ol3d) {
             var sahne = window.ol3d.getCesiumScene();
             sahne.requestRender();
@@ -282,6 +282,8 @@ function tekInsaatSil(insaatId) {
 }
 
 function popupIcerikGoster(insaat, koordinat) {
+    
+    content.innerHTML = '';
 
     var aPersonelListesi = insaat.aPersoneller || insaat.APersoneller || [];
     var bPersonelListesi = insaat.bPersoneller || insaat.BPersoneller || [];
@@ -306,8 +308,8 @@ function popupIcerikGoster(insaat, koordinat) {
         '<h5 style="margin: 0 0 5px 0; color: #2c3e50;"><b>🏢 ' + insaat.insaatAdi + '</b></h5>' +
         '<hr style="margin: 5px 0;">' +
         '<p style="margin: 0; font-size: 14px;"><b>Türü:</b> ' + insaat.insaatTuru + '</p>' +
-    '<p style="margin: 0; font-size: 14px;"><b>Açıklama:</b> ' + insaat.aciklama + '</p>' +
-    (insaat.baslamaTarihi ? '<p style="margin: 0; font-size: 14px;"><b>Başlama Tarihi:</b> ' + new Date(insaat.baslamaTarihi).toLocaleDateString('tr-TR') + '</p>' : '') +
+        '<p style="margin: 0; font-size: 14px;"><b>Açıklama:</b> ' + insaat.aciklama + '</p>' +
+        (insaat.baslamaTarihi ? '<p style="margin: 0; font-size: 14px;"><b>Başlama Tarihi:</b> ' + new Date(insaat.baslamaTarihi).toLocaleDateString('tr-TR') + '</p>' : '') +
 
         (aPersonelMetni ? '<div class="personel-kutu">' +
             '<span class="personel-baslik">👷 A Sorumlu Personeller:</span>' +
@@ -326,15 +328,15 @@ function popupIcerikGoster(insaat, koordinat) {
         '<option value="1" ' + (insaat.durumId === 1 ? 'selected' : '') + '>🟡 Devam Ediyor</option>' +
         '<option value="2" ' + (insaat.durumId === 2 ? 'selected' : '') + '>🟢 Tamamlandı</option>' +
         '</select>' +
-    '</div>' +
-    (insaat.durumId === 1 ?
-        '<div style="margin-top: 8px;">' +
-        '<label style="font-size: 12px; font-weight: bold;">Tamamlanma Yüzdesi:</label>' +
-        '<div style="display:flex; gap:5px; margin-top:5px;">' +
-        '<input type="number" id="tamamlanmaYuzdesi" min="0" max="100" value="' + (insaat.tamamlanmaYuzdesi || 0) + '" style="width:70%; padding:5px;">' +
-        '<button onclick="yuzdeyiGuncelle(' + insaat.id + ')" style="padding:5px 10px; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer;">💾</button>' +
         '</div>' +
-        '</div>' : '') +
+        (insaat.durumId === 1 ?
+            '<div style="margin-top: 8px;">' +
+            '<label style="font-size: 12px; font-weight: bold;">Tamamlanma Yüzdesi:</label>' +
+            '<div style="display:flex; gap:5px; margin-top:5px;">' +
+            '<input type="number" id="tamamlanmaYuzdesi" min="0" max="100" value="' + (insaat.tamamlanmaYuzdesi || 0) + '" style="width:70%; padding:5px;">' +
+            '<button onclick="yuzdeyiGuncelle(' + insaat.id + ')" style="padding:5px 10px; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer;">💾</button>' +
+            '</div>' +
+            '</div>' : '') +
 
         '<div class="personel-kutu" style="margin-top:8px;">' +
         '<span class="personel-baslik">➕ A Personeli Ekle:</span>' +
@@ -580,17 +582,17 @@ window.addEventListener('load', function () {
         });
 
         btn2D3D.addEventListener('click', function () {
-            
+
             if (!window.ol3d) {
                 try {
                     window.ol3d = new olcs.OLCesium({ map: map });
-                    
+
                     var cesiumSahnesi = window.ol3d.getCesiumScene();
 
-                    
+
                     cesiumSahnesi.terrainProvider = new Cesium.EllipsoidTerrainProvider();
 
-                    
+
                     if (Cesium.createWorldTerrainAsync) {
                         Cesium.createWorldTerrainAsync().then(function (terrainProvider) {
                             cesiumSahnesi.terrainProvider = terrainProvider;
@@ -605,43 +607,12 @@ window.addEventListener('load', function () {
                         }
                     }
 
-                    
+
                     cesiumSahnesi.globe.depthTestAgainstTerrain = false;
                     cesiumSahnesi.globe.enableLighting = true;
 
-                    
-                    var handler = new Cesium.ScreenSpaceEventHandler(cesiumSahnesi.canvas);
 
-                    handler.setInputAction(function (click) {
-                        if (!window.ol3d.getEnabled()) return;
-                        if (!cesiumSahnesi.globe.tilesLoaded) return;
-
-                        var picked = cesiumSahnesi.pick(click.position);
-
-                        if (Cesium.defined(picked) && picked.primitive) {
-                            var feature = picked.primitive.olFeature ||
-                                (picked.id ? picked.id.olFeature : null);
-
-                            if (feature && feature.get('insaatBilgisi')) {
-                                var insaat = feature.get('insaatBilgisi');
-                                var cartesian = cesiumSahnesi.camera.pickEllipsoid(
-                                    click.position,
-                                    cesiumSahnesi.globe.ellipsoid
-                                );
-
-                                if (cartesian) {
-                                    var carto = Cesium.Cartographic.fromCartesian(cartesian);
-                                    var lon = Cesium.Math.toDegrees(carto.longitude);
-                                    var lat = Cesium.Math.toDegrees(carto.latitude);
-                                    var olKoordinat = ol.proj.fromLonLat([lon, lat]);
-
-                                    popupIcerikGoster(insaat, olKoordinat);
-                                }
-                            }
-                        } else {
-                            overlay.setPosition(undefined);
-                        }
-                    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+                   
 
                 } catch (e) {
                     console.error('3D başlatma hatası:', e);
@@ -826,7 +797,7 @@ window.addEventListener('load', function () {
                         Metro.dialog.close('#insaatDialog');
                         formElemani.reset();
 
-                        
+
                         if (aSelect) aSelect.selectedIndex = -1;
                         if (bSelect) bSelect.selectedIndex = -1;
 
@@ -903,13 +874,39 @@ window.addEventListener('load', function () {
                 .catch(err => console.error(err));
         };
         window.yuzdeyiGuncelle = function (id) {
-            var yuzde = document.getElementById('tamamlanmaYuzdesi').value;
+            // DUPLIKASYON ÖNLEME
+            if (window.yuzdeKilit) return;
+            window.yuzdeKilit = true;
+            setTimeout(function () { window.yuzdeKilit = false; }, 500);
+
+          
+
+            // Görünür olan input'u bul (2D'de tek, 3D'de duplikasyondan biri)
+            var tumInputlar = document.querySelectorAll('#tamamlanmaYuzdesi');
+            var yuzde = '';
+            var modu3D = window.ol3d && window.ol3d.getEnabled();
+
+            for (var i = 0; i < tumInputlar.length; i++) {
+                var inp = tumInputlar[i];
+                var rect = inp.getBoundingClientRect();
+                // Görünür olan input'u al (genişliği/yüksekliği 0 olmayan)
+                if (rect.width > 0 && rect.height > 0) {
+                    // 3D'deyse son görünür input'u al, 2D'deyse ilk görünür input'u
+                    if (modu3D) {
+                        yuzde = inp.value;
+                    } else if (!yuzde) {
+                        yuzde = inp.value;
+                        break;
+                    }
+                }
+            }
+
             var formVerisi = new FormData();
             formVerisi.append("id", id);
             formVerisi.append("yuzde", yuzde);
             fetch('/Harita/YuzdeGuncelle', { method: 'POST', body: formVerisi })
-                .then(res => res.json())
-                .then(data => {
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
                     if (data.success) {
                         var notify = Metro.notify.create("Yüzde güncellendi!", "Başarılı", { cls: "success" });
                         setTimeout(function () { if (notify && notify.close) notify.close(); }, 3000);
@@ -918,6 +915,9 @@ window.addEventListener('load', function () {
                         });
                         if (feature) {
                             feature.set('insaatBilgisi', data.data);
+                            var geom = feature.getGeometry();
+                            var koord = geom.getCoordinates();
+                            popupIcerikGoster(data.data, koord);
                         }
                     } else {
                         Metro.notify.create("Hata: " + data.message, "Hata", { cls: "alert" });
@@ -986,7 +986,7 @@ window.addEventListener('load', function () {
         };
         window.personelEkle = function (insaatId, personelId, tip) {
             if (!personelId || personelId === '' || personelId === 'undefined') {
-                return;  
+                return;
             }
 
             if (!personelId || personelId === '') {
