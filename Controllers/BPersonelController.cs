@@ -38,7 +38,8 @@ namespace PersonelSistemi.Controllers
             var kolonlar = new List<GridKolonModel>
             {
                 new GridKolonModel { Baslik = "Adı",    VeriAlani = "adi",    FiltrelenebilirMi = true, SiralanabilirMi = true },
-                new GridKolonModel { Baslik = "Soyadı", VeriAlani = "soyadi", FiltrelenebilirMi = true, SiralanabilirMi = true }
+                new GridKolonModel { Baslik = "Soyadı", VeriAlani = "soyadi", FiltrelenebilirMi = true, SiralanabilirMi = true },
+                new GridKolonModel { Baslik = "Cinsiyet",  VeriAlani = "cinsiyet",  FiltrelenebilirMi = true, SiralanabilirMi = true }
             };
 
             var butonlar = new List<GridButonModel>

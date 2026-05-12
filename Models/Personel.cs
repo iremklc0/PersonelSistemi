@@ -27,7 +27,10 @@ namespace PersonelSistemi.Models
         [StringLength(11, MinimumLength = 11, ErrorMessage = "TC Kimlik numarası tam 11 haneli olmalıdır!")]
         [Column("tc")]
         public string? tc { get; set; }
-        
+        [Required(ErrorMessage = "Cinsiyet alanı zorunludur!")]
+        [Column("cinsiyet")]
+        public string? cinsiyet { get; set; }
+
         public virtual ICollection<InsaatPersonel> InsaatPersonelleri { get; set; } = new List<InsaatPersonel>();
     }
 }

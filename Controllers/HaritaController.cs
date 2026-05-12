@@ -89,21 +89,24 @@ namespace PersonelSistemi.Controllers
                         x.KayitTarihi,
                         x.BaslamaTarihi,
                         x.TamamlanmaYuzdesi,
-                        //  Ayrı ayrı personel listeleri
+                        
                         APersoneller = x.InsaatPersonelleri.Select(ip => new {
                             id = ip.Personel!.objectid,
                             adSoyad = ip.Personel!.adi + " " + ip.Personel!.soyadi,
+                            cinsiyet = ip.Personel!.cinsiyet,
                             tip = "A"
                         }).ToList(),
                         BPersoneller = x.InsaatBPersonelleri.Select(ibp => new {
                             id = ibp.BPersonel!.objectid,
                             adSoyad = ibp.BPersonel!.adi + " " + ibp.BPersonel!.soyadi,
+                            cinsiyet = ibp.BPersonel!.cinsiyet,
                             tip = "B"
                         }).ToList(),
                         
                         Personeller = x.InsaatPersonelleri.Select(ip => new {
                             id = ip.Personel!.objectid,
                             adSoyad = ip.Personel!.adi + " " + ip.Personel!.soyadi,
+                            cinsiyet = ip.Personel!.cinsiyet,
                             tip = "A"
                         }).ToList()
                     })
@@ -350,18 +353,20 @@ namespace PersonelSistemi.Controllers
             try
             {
                 var aPersoneller = _context.Personeller
-                    .Where(p => p.adi != null && p.soyadi != null)
-                    .Select(p => new {
-                        id = p.objectid,
-                        adSoyad = p.adi + " " + p.soyadi,
-                        tip = "A"
-                    }).ToList();
+    .Where(p => p.adi != null && p.soyadi != null)
+    .Select(p => new {
+        id = p.objectid,
+        adSoyad = p.adi + " " + p.soyadi,
+        cinsiyet = p.cinsiyet,
+        tip = "A"
+    }).ToList();
 
                 var bPersoneller = _context.BPersoneller
                     .Where(p => p.adi != null && p.soyadi != null)
                     .Select(p => new {
                         id = p.objectid,
                         adSoyad = p.adi + " " + p.soyadi,
+                        cinsiyet = p.cinsiyet,
                         tip = "B"
                     }).ToList();
 
@@ -520,6 +525,7 @@ namespace PersonelSistemi.Controllers
                 {
                     id = ip.Personel!.objectid,
                     adSoyad = ip.Personel!.adi + " " + ip.Personel.soyadi,
+                    cinsiyet = ip.Personel!.cinsiyet,
                     tip = "A"
                 }).ToList();
 
@@ -529,6 +535,7 @@ namespace PersonelSistemi.Controllers
                 {
                     id = ibp.BPersonel!.objectid,
                     adSoyad = ibp.BPersonel!.adi + " " + ibp.BPersonel.soyadi,
+                    cinsiyet = ibp.BPersonel!.cinsiyet,
                     tip = "B"
                 }).ToList();
 

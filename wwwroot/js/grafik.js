@@ -37,6 +37,7 @@
                         }
                     });
 
+                    
                     window.aylikChart = new Chart(document.getElementById('grafikAylik').getContext('2d'), {
                         type: 'bar',
                         data: {
@@ -44,7 +45,51 @@
                             datasets: [{ label: 'Insaat Sayisi', data: sortedAylar.map(function (a) { return aylar[a]; }), backgroundColor: '#3498db' }]
                         }
                     });
+
+                    // CİNSİYET DROPDOWN'U DOLDUR
+                    var secici = document.getElementById('grafikInsaatSecimi');
+                    if (secici) {
+                        secici.innerHTML = '<option value="">İnşaat seçiniz...</option>';
+                        insaatlar.forEach(function (i) {
+                            var opt = document.createElement('option');
+                            opt.value = i.id;
+                            opt.textContent = i.insaatAdi;
+                            secici.appendChild(opt);
+                        });
+
+                        // Seçim değiştiğinde cinsiyet grafiğini çiz
+                        secici.onchange = function () {
+                            var secilenId = parseInt(this.value);
+                            if (window.cinsiyetChart) window.cinsiyetChart.destroy();
+                            if (!secilenId) return;
+
+                            var secilen = insaatlar.find(function (i) { return i.id === secilenId; });
+                            if (!secilen) return;
+
+                            var aPersoneller = secilen.aPersoneller || secilen.APersoneller || [];
+                            var bPersoneller = secilen.bPersoneller || secilen.BPersoneller || [];
+                            var tumPersoneller = aPersoneller.concat(bPersoneller);
+
+                            var erkek = 0, kadin = 0;
+                            tumPersoneller.forEach(function (p) {
+                                if (p.cinsiyet === 'Erkek') erkek++;
+                                else if (p.cinsiyet === 'Kadın') kadin++;
+                            });
+
+                            window.cinsiyetChart = new Chart(document.getElementById('grafikCinsiyet').getContext('2d'), {
+                                type: 'doughnut',
+                                data: {
+                                    labels: ['Erkek', 'Kadin'],
+                                    datasets: [{
+                                        data: [erkek, kadin],
+                                        backgroundColor: ['#3498db', '#e91e63']
+                                    }]
+                                }
+                            });
+                        };
+                    }
                 }, 300);
+              
             });
     });
 });

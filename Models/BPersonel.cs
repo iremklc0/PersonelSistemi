@@ -22,6 +22,9 @@ namespace PersonelSistemi.Models
 
         [Column("tc")]
         public string? tc { get; set; }
+        [Required(ErrorMessage = "Cinsiyet alanı zorunludur!")]
+        [Column("cinsiyet")]
+        public string? cinsiyet { get; set; }
 
         public virtual ICollection<InsaatBPersonel> InsaatBPersonelleri { get; set; } = new List<InsaatBPersonel>();  // YENİ
     }

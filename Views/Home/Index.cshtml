@@ -123,17 +123,24 @@
             <button class="button primary" id="btnKonteynerKaydet">Veritabanına Kaydet</button>
         </div>
     </div>
-    <div class="dialog" data-role="dialog" id="grafikDialog" data-width="700">
+    <div class="dialog" data-role="dialog" id="grafikDialog" data-width="1000">
         <div class="dialog-title">📊 İnşaat İstatistikleri</div>
         <div class="dialog-content">
             <div style="display:flex; gap:20px; flex-wrap:wrap;">
-                <div style="flex:1; min-width:300px;">
+                <div style="flex:1; min-width:280px;">
                     <h6 style="text-align:center;">Durum Dağılımı</h6>
-                    <canvas id="grafikDurum" width="300" height="300"></canvas>
+                    <canvas id="grafikDurum" width="280" height="280"></canvas>
                 </div>
-                <div style="flex:1; min-width:300px;">
+                <div style="flex:1; min-width:280px;">
                     <h6 style="text-align:center;">Aylık Başlama</h6>
-                    <canvas id="grafikAylik" width="300" height="300"></canvas>
+                    <canvas id="grafikAylik" width="280" height="280"></canvas>
+                </div>
+                <div style="flex:1; min-width:280px;">
+                    <h6 style="text-align:center;">Cinsiyet Dağılımı</h6>
+                    <select id="grafikInsaatSecimi" style="width:100%; padding:5px; margin-bottom:10px; border:1px solid #ddd; border-radius:4px;">
+                        <option value="">İnşaat seçiniz</option>
+                    </select>
+                    <canvas id="grafikCinsiyet" width="280" height="280"></canvas>
                 </div>
             </div>
         </div>
