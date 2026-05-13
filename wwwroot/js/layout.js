@@ -264,17 +264,45 @@ function insaatRaporuGoster(insaat) {
 }
 
 function raporuYazdir() {
-    var icerik = $('.dialog .dialog-content').html();
+    // DUPLIKASYON ÖNLEME
+    if (window.raporKilit) return;
+    window.raporKilit = true;
+    setTimeout(function () { window.raporKilit = false; }, 1500);
+
+    var raporDialog = null;
+    $('.dialog').each(function () {
+        var baslik = $(this).find('.dialog-title').text();
+        if (baslik && baslik.indexOf('Insaat Durum Raporu') !== -1) {
+            raporDialog = $(this);
+        }
+    });
+    if (!raporDialog) {
+        alert('Rapor dialog bulunamadı.');
+        return;
+    }
+
+    var icerik = raporDialog.find('.dialog-content').clone();
+    icerik.find('button').remove();
+
     var pencere = window.open('', '_blank');
-    pencere.document.write('<html><head><title>Insaat Raporu</title>');
-    pencere.document.write('<style>body{font-family:Arial,sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;} td{padding:8px;border:1px solid #ddd;} tr:nth-child(even){background:#f9f9f9;}</style>');
+    pencere.document.write('<html><head><title>Insaat Durum Raporu</title>');
+    pencere.document.write('<style>');
+    pencere.document.write('body{font-family:Arial,sans-serif;padding:30px;color:#2c3e50;}');
+    pencere.document.write('h5{font-size:22px;margin-bottom:20px;border-bottom:2px solid #2c3e50;padding-bottom:10px;}');
+    pencere.document.write('table{width:100%;border-collapse:collapse;margin-top:15px;}');
+    pencere.document.write('td{padding:10px;border:1px solid #ddd;font-size:14px;}');
+    pencere.document.write('tr:nth-child(even){background:#f9f9f9;}');
+    pencere.document.write('td:first-child{font-weight:bold;width:35%;background:#ecf0f1;}');
+    pencere.document.write('</style>');
     pencere.document.write('</head><body>');
-    pencere.document.write(icerik);
+    pencere.document.write('<div style="text-align:center; margin-bottom:20px; border-bottom:2px solid #2c3e50; padding-bottom:15px;">');
+    pencere.document.write('<img src="/images/otek-logo.png.webp" style="max-height:80px;" alt="OTEK Yazılım"/>');
+    pencere.document.write('</div>');
+    pencere.document.write(icerik.html());
     pencere.document.write('</body></html>');
     pencere.document.close();
-    pencere.print();
+    setTimeout(function () { pencere.print(); }, 300);
 }
-
 function dosyaSil(dosyaAdi, event) {
     if (event) event.stopPropagation();
     gorselKapat();
