@@ -12,6 +12,7 @@ namespace PersonelSistemi.Models
         public bool IsPaging { get; set; } = false;
         public bool IsSorted { get; set; } = false;
         public int SayfaBasinaKayitSayisi { get; set; } = 10;
+        public bool YeniKayitButonuGoster { get; set; } = true;
         public string SiralamaAlani { get; set; } = string.Empty;
         public string SiralamaCiheti { get; set; } = "asc";
     }

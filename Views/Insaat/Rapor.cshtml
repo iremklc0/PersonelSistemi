@@ -1,0 +1,61 @@
+﻿@{
+    Layout = "~/Views/Shared/_PencereLayout.cshtml";
+    var insaat = ViewBag.Insaat as OtekSistem.Models.Insaat;
+    var durum = insaat.DurumId == 0 ? "🔴 Durduruldu" : insaat.DurumId == 1 ? "🟡 Devam Ediyor" : "🟢 Tamamlandı";
+    var tarih = insaat.BaslamaTarihi.HasValue ? insaat.BaslamaTarihi.Value.ToLocalTime().ToString("dd.MM.yyyy") : "Belirtilmemiş";
+}
+<style>
+    @@media print {
+        @@page {
+            margin: 1cm;
+            size: A4;
+        }
+
+        .yazdir-gizle {
+            display: none !important;
+        }
+    }
+</style>
+<div style="padding:20px;">
+    <div style="text-align:center; margin-bottom:20px; border-bottom:2px solid #2c3e50; padding-bottom:15px;">
+        <img src="/images/otek-logo.png.webp" style="max-height:80px;" alt="OTEK Yazılım" />
+    </div>
+    <h3>📋 İnşaat Durum Raporu</h3>
+    <hr />
+    <h5>@insaat.InsaatAdi</h5>
+    <table class="table" style="width:100%; border-collapse:collapse; margin-top:15px;">
+        <tr style="background:#ecf0f1;">
+            <td style="padding:10px; font-weight:bold; width:35%; border:1px solid #ddd;">Tür:</td>
+            <td style="padding:10px; border:1px solid #ddd;">@(insaat.InsaatTuru ?? "-")</td>
+        </tr>
+        <tr>
+            <td style="padding:10px; font-weight:bold; background:#ecf0f1; border:1px solid #ddd;">Durum:</td>
+            <td style="padding:10px; border:1px solid #ddd;">@durum</td>
+        </tr>
+        <tr style="background:#f9f9f9;">
+            <td style="padding:10px; font-weight:bold; background:#ecf0f1; border:1px solid #ddd;">Açıklama:</td>
+            <td style="padding:10px; border:1px solid #ddd;">@(insaat.Aciklama ?? "-")</td>
+        </tr>
+        <tr>
+            <td style="padding:10px; font-weight:bold; background:#ecf0f1; border:1px solid #ddd;">Başlama Tarihi:</td>
+            <td style="padding:10px; border:1px solid #ddd;">@tarih</td>
+        </tr>
+        <tr style="background:#f9f9f9;">
+            <td style="padding:10px; font-weight:bold; background:#ecf0f1; border:1px solid #ddd;">Tamamlanma:</td>
+            <td style="padding:10px; border:1px solid #ddd;">%@insaat.TamamlanmaYuzdesi</td>
+        </tr>
+        <tr>
+            <td style="padding:10px; font-weight:bold; background:#ecf0f1; border:1px solid #ddd;">A Personelleri:</td>
+            <td style="padding:10px; border:1px solid #ddd;">@ViewBag.APersoneller</td>
+        </tr>
+        <tr style="background:#f9f9f9;">
+            <td style="padding:10px; font-weight:bold; background:#ecf0f1; border:1px solid #ddd;">B Personelleri:</td>
+            <td style="padding:10px; border:1px solid #ddd;">@ViewBag.BPersoneller</td>
+        </tr>
+    </table>
+
+    <div class="yazdir-gizle" style="text-align:right; margin-top:20px;">
+        <button onclick="window.print()" style="padding:10px 20px; background:#2c3e50; color:white; border:none; border-radius:4px; cursor:pointer; font-size:14px; font-weight:bold;">🖨️ Yazdır</button>
+        <a href="/Insaat/Index" class="button secondary outline">Geri</a>
+    </div>
+</div>

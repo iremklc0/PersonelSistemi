@@ -44,12 +44,14 @@
     <div class="container-fluid p-0 m-0" style="padding: 20px !important;">
         <h2 class="mt-0">@sayfaBasligi</h2>
         <hr />
-        <div class="row mb-4">
-            <div class="cell-md-12">
-                <a href="/@Model.ControllerAdi/Ekle" class="button primary"><span class="mif-plus"></span> Yeni Kayıt
-                    Ekle</a>
+        @if (Model.YeniKayitButonuGoster)
+        {
+            <div class="row mb-4">
+                <div class="cell-md-12">
+                    <a href="/@Model.ControllerAdi/Ekle" class="button primary"><span class="mif-plus"></span> Yeni Kayıt Ekle</a>
                 </div>
             </div>
+        }
 
             <form method="get" action="/@Model.ControllerAdi/Index" id="filtre-form">
                 <input type="hidden" name="siralamaAlani" id="siralamaAlani" value="@mevcutSiralamaAlani" />

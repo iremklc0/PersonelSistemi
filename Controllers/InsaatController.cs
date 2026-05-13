@@ -17,43 +17,74 @@ namespace PersonelSistemi.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string? insaatAdi, string? insaatTuru, string? siralamaAlani, string? siralamaCiheti)
         {
-            var kolonlar = new List<GridKolonModel>
+            var sorgu = _context.Insaatlar
+                .Include(x => x.InsaatDurumu)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(insaatAdi))
+                sorgu = sorgu.Where(x => x.InsaatAdi != null && x.InsaatAdi.ToLower().Contains(insaatAdi.ToLower().Trim()));
+
+            if (!string.IsNullOrEmpty(insaatTuru))
+                sorgu = sorgu.Where(x => x.InsaatTuru != null && x.InsaatTuru.ToLower().Contains(insaatTuru.ToLower().Trim()));
+
+            if (string.IsNullOrEmpty(siralamaCiheti)) siralamaCiheti = "asc";
+
+            sorgu = siralamaAlani switch
             {
-                new GridKolonModel { Baslik = "İnşaat Adı",     VeriAlani = "insaatAdi",          FiltrelenebilirMi = true,  SiralanabilirMi = true },
-                new GridKolonModel { Baslik = "Türü",           VeriAlani = "insaatTuru",          FiltrelenebilirMi = true,  SiralanabilirMi = true },
-                new GridKolonModel { Baslik = "Durum",          VeriAlani = "durumAdi",            FiltrelenebilirMi = true,  SiralanabilirMi = true },
-                new GridKolonModel { Baslik = "Başlama Tarihi", VeriAlani = "baslamaTarihiStr",    FiltrelenebilirMi = false, SiralanabilirMi = true },
-                new GridKolonModel { Baslik = "Tamamlanma %",   VeriAlani = "tamamlanmaYuzdesi",   FiltrelenebilirMi = false, SiralanabilirMi = true },
+                "insaatAdi" => siralamaCiheti == "asc" ? sorgu.OrderBy(x => x.InsaatAdi) : sorgu.OrderByDescending(x => x.InsaatAdi),
+                "insaatTuru" => siralamaCiheti == "asc" ? sorgu.OrderBy(x => x.InsaatTuru) : sorgu.OrderByDescending(x => x.InsaatTuru),
+                "baslamaTarihi" => siralamaCiheti == "asc" ? sorgu.OrderBy(x => x.BaslamaTarihi) : sorgu.OrderByDescending(x => x.BaslamaTarihi),
+                "tamamlanmaYuzdesi" => siralamaCiheti == "asc" ? sorgu.OrderBy(x => x.TamamlanmaYuzdesi) : sorgu.OrderByDescending(x => x.TamamlanmaYuzdesi),
+                _ => sorgu.OrderBy(x => x.Id)
             };
 
-            var insaatlar = _context.Insaatlar
-                .Include(x => x.InsaatDurumu)
-                .Include(x => x.InsaatPersonelleri).ThenInclude(ip => ip.Personel)
-                .Include(x => x.InsaatBPersonelleri).ThenInclude(ibp => ibp.BPersonel)
-                .ToList()
-                .Select(x => new Dictionary<string, object>
-                {
-                    ["id"] = x.Id,
-                    ["insaatAdi"] = x.InsaatAdi ?? "",
-                    ["insaatTuru"] = x.InsaatTuru ?? "",
-                    ["durumAdi"] = x.DurumId == 0 ? "Durduruldu" : x.DurumId == 1 ? "Devam Ediyor" : "Tamamlandı",
-                    ["durumId"] = x.DurumId,
-                    ["baslamaTarihiStr"] = x.BaslamaTarihi.HasValue ? x.BaslamaTarihi.Value.ToLocalTime().ToString("dd.MM.yyyy") : "-",
-                    ["tamamlanmaYuzdesi"] = "%" + x.TamamlanmaYuzdesi,
-                    ["aciklama"] = x.Aciklama ?? "",
-                    ["aPersoneller"] = x.InsaatPersonelleri.Where(ip => ip.Personel != null)
-                                               .Select(ip => ip.Personel!.adi + " " + ip.Personel!.soyadi).ToList(),
-                    ["bPersoneller"] = x.InsaatBPersonelleri.Where(ibp => ibp.BPersonel != null)
-                                               .Select(ibp => ibp.BPersonel!.adi + " " + ibp.BPersonel!.soyadi).ToList(),
-                }).ToList();
+            var insaatlar = sorgu.ToList();
 
-            ViewBag.Kolonlar = kolonlar;
-            ViewBag.Veriler = insaatlar;
-            ViewBag.Baslik = "İnşaat Listesi";
+            var kolonlar = new List<GridKolonModel>
+    {
+        new GridKolonModel { Baslik = "İnşaat Adı",     VeriAlani = "insaatAdi",          FiltrelenebilirMi = true,  SiralanabilirMi = true },
+        new GridKolonModel { Baslik = "Türü",           VeriAlani = "insaatTuru",         FiltrelenebilirMi = true,  SiralanabilirMi = true },
+        new GridKolonModel { Baslik = "Durum",          VeriAlani = "durumAdi",           FiltrelenebilirMi = false, SiralanabilirMi = false },
+        new GridKolonModel { Baslik = "Başlama Tarihi", VeriAlani = "baslamaTarihi",      FiltrelenebilirMi = false, SiralanabilirMi = true },
+        new GridKolonModel { Baslik = "Tamamlanma %",   VeriAlani = "tamamlanmaYuzdesi",  FiltrelenebilirMi = false, SiralanabilirMi = true }
+    };
 
-            return View();
+            var butonlar = new List<GridButonModel>
+    {
+        new GridButonModel { Metin = "Rapor",    Aksiyon = "Rapor",    CssSinifi = "button primary small", OnayGerektirirMi = false },
+        new GridButonModel { Metin = "Sil",      Aksiyon = "Sil",      CssSinifi = "button alert small",   OnayGerektirirMi = true  }
+    };
+
+            var dinamikListe = insaatlar.Select(x =>
+            {
+                var satir = new Dictionary<string, object?>();
+                satir["objectid"] = x.Id;
+                satir["insaatAdi"] = x.InsaatAdi ?? "";
+                satir["insaatTuru"] = x.InsaatTuru ?? "";
+                satir["durumAdi"] = x.DurumId == 0 ? "🔴 Durduruldu" : x.DurumId == 1 ? "🟡 Devam Ediyor" : "🟢 Tamamlandı";
+                satir["baslamaTarihi"] = x.BaslamaTarihi.HasValue ? x.BaslamaTarihi.Value.ToLocalTime().ToString("dd.MM.yyyy") : "-";
+                satir["tamamlanmaYuzdesi"] = "%" + x.TamamlanmaYuzdesi;
+                return satir;
+            }).ToList();
+
+            var model = new GenelGridModel
+            {
+                Veriler = dinamikListe,
+                Kolonlar = kolonlar,
+                Butonlar = butonlar,
+                ControllerAdi = "Insaat",
+                IsFiltered = true,
+                IsPaging = true,
+                IsSorted = true,
+                SiralamaAlani = siralamaAlani ?? "",
+                SiralamaCiheti = siralamaCiheti,
+                SayfaBasinaKayitSayisi = 10,
+                YeniKayitButonuGoster = false
+            };
+
+            return View("~/Views/Shared/_GenelGrid.cshtml", model);
         }
 
 
@@ -154,6 +185,49 @@ namespace PersonelSistemi.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+        public IActionResult Sil(int id)
+        {
+            var insaat = _context.Insaatlar
+                .Include(x => x.InsaatPersonelleri)
+                .Include(x => x.InsaatBPersonelleri)
+                .FirstOrDefault(x => x.Id == id);
+
+            if (insaat != null)
+            {
+                _context.InsaatPersonelleri.RemoveRange(insaat.InsaatPersonelleri);
+                _context.InsaatBPersonelleri.RemoveRange(insaat.InsaatBPersonelleri);
+                _context.Insaatlar.Remove(insaat);
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction("Index");
+        }
+        public IActionResult Rapor(int id)
+        {
+            var insaat = _context.Insaatlar
+                .Include(x => x.InsaatDurumu)
+                .Include(x => x.InsaatPersonelleri).ThenInclude(ip => ip.Personel)
+                .Include(x => x.InsaatBPersonelleri).ThenInclude(ibp => ibp.BPersonel)
+                .FirstOrDefault(x => x.Id == id);
+
+            if (insaat == null) return NotFound();
+
+            var aPersoneller = insaat.InsaatPersonelleri
+                .Where(ip => ip.Personel != null)
+                .Select(ip => ip.Personel!.adi + " " + ip.Personel!.soyadi)
+                .ToList();
+
+            var bPersoneller = insaat.InsaatBPersonelleri
+                .Where(ibp => ibp.BPersonel != null)
+                .Select(ibp => ibp.BPersonel!.adi + " " + ibp.BPersonel!.soyadi)
+                .ToList();
+
+            ViewBag.Insaat = insaat;
+            ViewBag.APersoneller = aPersoneller.Any() ? string.Join(", ", aPersoneller) : "Yok";
+            ViewBag.BPersoneller = bPersoneller.Any() ? string.Join(", ", bPersoneller) : "Yok";
+
+            return View();
         }
         [HttpPost]
         public IActionResult InsaatSil(int id)
