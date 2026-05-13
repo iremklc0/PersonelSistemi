@@ -114,7 +114,8 @@ html, body {
     border: 1px solid #cccccc;
     bottom: 12px;
     left: -50px;
-    min-width: 250px;
+    min-width: 380px;
+    max-width: 450px;
     z-index: 9999 !important;
     pointer-events: all !important;
     max-height: 70vh;
@@ -317,4 +318,8 @@ html, body {
 .dialog .dialog-content {
     max-height: 55vh !important; 
     overflow-y: auto !important; 
+}
+.dialog-yukari {
+    top: 50px !important;
+    transform: translate(-50%, 0) !important;
 }

@@ -187,42 +187,47 @@ function belgePenceresiAc() {
 function insaatListesiAc() {
     var mevcut = $('.win-insaat-listesi');
     if (mevcut.length > 0) { pencereOncePlan(mevcut); return; }
-    fetch('/Harita/InsaatlariGetir')
+    fetch('/Insaat/InsaatlariGetir')
         .then(function (res) { return res.json(); })
         .then(function (data) {
             if (!data.success) return;
             var insaatlar = data.data;
             window._insaatListesiCache = {};
             insaatlar.forEach(function (i) { window._insaatListesiCache[i.id] = i; });
-            var devamEdenler = insaatlar.filter(function (i) { return i.durumId === 1; });
-            var durdurulmus = insaatlar.filter(function (i) { return i.durumId === 0; });
-            var tamamlanan = insaatlar.filter(function (i) { return i.durumId === 2; });
-            function grupHtml(baslik, renk, emoji, liste) {
-                if (liste.length === 0) return '';
-                var html = '<div style="margin-bottom:20px;">';
-                html += '<h6 style="color:' + renk + '; border-bottom:2px solid ' + renk + '; padding-bottom:5px;">' + emoji + ' ' + baslik + ' (' + liste.length + ')</h6>';
-                liste.forEach(function (i) {
-                    html += '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px; margin-bottom:5px; background:#f9f9f9; border-radius:6px; border-left:4px solid ' + renk + ';">';
-                    html += '<div><b>' + i.insaatAdi + '</b>';
-                    html += '<span style="font-size:12px; color:#666; margin-left:10px;">' + (i.insaatTuru || '') + '</span></div>';
-                    html += '<button style="background:#3498db; color:white; border:none; border-radius:4px; padding:4px 10px; cursor:pointer;" onclick="insaatRaporuGosterById(' + i.id + ')">Insaat Durumu</button>';
-                    html += '</div>';
-                });
-                html += '</div>';
-                return html;
-            }
-            var icerik = '<div style="padding:15px; max-height:500px; overflow-y:auto;">';
-            icerik += grupHtml('Devam Ediyor', '#f39c12', '🟡', devamEdenler);
-            icerik += grupHtml('Durduruldu', '#e74c3c', '🔴', durdurulmus);
-            icerik += grupHtml('Tamamlandi', '#27ae60', '🟢', tamamlanan);
-            icerik += '</div>';
+
+            var icerik = '<div style="padding:15px;">';
+            icerik += '<div style="display:flex; flex-wrap:wrap; gap:12px;">';
+
+            insaatlar.forEach(function (i) {
+                var durumRenk = i.durumId === 0 ? '#e74c3c' : i.durumId === 1 ? '#f39c12' : '#27ae60';
+                var durumYazi = i.durumId === 0 ? 'Durduruldu' : i.durumId === 1 ? 'Devam Ediyor' : 'Tamamlandi';
+                var durumEmoji = i.durumId === 0 ? '🔴' : i.durumId === 1 ? '🟡' : '🟢';
+                var tarih = i.baslamaTarihi ? new Date(i.baslamaTarihi).toLocaleDateString('tr-TR') : '-';
+
+                icerik += '<div style="width:calc(33% - 8px); min-width:200px; background:white; border:1px solid #e0e0e0; border-radius:8px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.08); border-top:4px solid ' + durumRenk + ';">';
+                icerik += '<div style="font-weight:bold; font-size:14px; margin-bottom:6px; color:#2c3e50;">' + i.insaatAdi + '</div>';
+                icerik += '<div style="font-size:12px; color:#666; margin-bottom:4px;">📋 ' + (i.insaatTuru || '-') + '</div>';
+                icerik += '<div style="font-size:12px; color:#666; margin-bottom:4px;">📅 ' + tarih + '</div>';
+                icerik += '<div style="font-size:12px; margin-bottom:8px;">' + durumEmoji + ' <span style="color:' + durumRenk + '; font-weight:bold;">' + durumYazi + '</span></div>';
+                icerik += '<div style="background:#f0f0f0; border-radius:4px; height:6px; margin-bottom:8px;"><div style="background:' + durumRenk + '; height:6px; border-radius:4px; width:' + (i.tamamlanmaYuzdesi || 0) + '%;"></div></div>';
+                icerik += '<div style="font-size:11px; color:#999; margin-bottom:8px;">%' + (i.tamamlanmaYuzdesi || 0) + ' tamamlandi</div>';
+                icerik += '<button onclick="insaatRaporuGosterById(' + i.id + ')" style="width:100%; padding:5px; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer; font-size:12px;">📋 Durum Raporu</button>';
+                icerik += '</div>';
+            });
+
+            icerik += '</div></div>';
+
             Metro.window.create({
-                title: 'Insaat Listesi', clsWindow: 'win-insaat-listesi',
+                title: 'Insaat Listesi (' + insaatlar.length + ' insaat)',
+                clsWindow: 'win-insaat-listesi',
                 shadow: true, draggable: true, resizable: true,
                 maximizable: true, minimizable: true, closable: true,
-                width: 700, height: 550, place: 'center',
+                width: 900, height: 600, place: 'center',
                 clsCaption: 'dinamik-tema-arkaplan', content: icerik,
-                onWindowCreate: function (w) { $(w).on('mousedown', function () { pencereOncePlan(this); }); }
+                onWindowCreate: function (w) {
+                    $(w).on('mousedown', function () { pencereOncePlan(this); });
+                    $(w).find('.window-content').css('overflow-y', 'auto');
+                }
             });
         });
 }

@@ -40,7 +40,7 @@
         </div>
     </div>
 
-    <div class="dialog" data-role="dialog" id="insaatDialog" data-width="400">
+    <div class="dialog" data-role="dialog" id="insaatDialog" data-width="400" data-cls-dialog="dialog-yukari">
         <div class="dialog-title">🏗️ Yeni İnşaat Başlat</div>
         <div class="dialog-content">
             <form id="frmInsaatEkle">
@@ -70,14 +70,14 @@
                 </div>
                 <div class="form-group mt-2">
                     <label style="display:block; font-weight:bold; margin-bottom:5px;">👷 A Personelleri</label>
-                    <select name="secilenAPersoneller" id="aPersonelSelect" multiple style="height: 120px; width:100%; border:1px solid #ddd; border-radius:4px; padding:5px;">
+                    <select name="secilenAPersoneller" id="aPersonelSelect" multiple size="1" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:5px; height:38px;">
                         <option value="">Seçiniz...</option>
                     </select>
                 </div>
 
                 <div class="form-group mt-2">
                     <label style="display:block; font-weight:bold; margin-bottom:5px;">👷 B Personelleri</label>
-                    <select name="secilenBPersoneller" id="bPersonelSelect" multiple style="height: 120px; width:100%; border:1px solid #ddd; border-radius:4px; padding:5px;">
+                    <select name="secilenBPersoneller" id="bPersonelSelect" multiple size="1" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:5px; height:38px;">
                         <option value="">Seçiniz...</option>
                     </select>
                 </div>
@@ -91,7 +91,7 @@
             <button class="button primary" id="btnKaydet">Veritabanına Kaydet</button>
         </div>
     </div>
-    <div class="dialog" data-role="dialog" id="konteynerDialog" data-width="400">
+    <div class="dialog" data-role="dialog" id="konteynerDialog" data-width="400" data-cls-dialog="dialog-yukari">
         <div class="dialog-title">🏠 Yeni Konteyner Ekle</div>
         <div class="dialog-content">
             <form id="frmKonteynerEkle">
@@ -103,13 +103,13 @@
 
                 <div class="form-group mt-2">
                     <label style="display:block; font-weight:bold; margin-bottom:5px;">👷 A Personelleri</label>
-                    <select name="secilenAPersoneller" id="konteynerAPersonelSelect" multiple style="height: 120px; width:100%; border:1px solid #ddd; border-radius:4px; padding:5px;">
+                    <select name="secilenAPersoneller" id="konteynerAPersonelSelect" multiple size="1" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:5px; height: 38px;">
                         <option value="">Seçiniz...</option>
                     </select>
                 </div>
                 <div class="form-group mt-2">
                     <label style="display:block; font-weight:bold; margin-bottom:5px;">👷 B Personelleri</label>
-                    <select name="secilenBPersoneller" id="konteynerBPersonelSelect" multiple style="height: 120px; width:100%; border:1px solid #ddd; border-radius:4px; padding:5px;">
+                    <select name="secilenBPersoneller" id="konteynerBPersonelSelect" multiple size="1" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:5px; height: 38px;">
                         <option value="">Seçiniz...</option>
                     </select>
                 </div>

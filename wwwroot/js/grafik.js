@@ -3,7 +3,7 @@
     if (!btnGrafik) return;
 
     btnGrafik.addEventListener('click', function () {
-        fetch('/Harita/InsaatlariGetir')
+        fetch('/Insaat/InsaatlariGetir')
             .then(function (res) { return res.json(); })
             .then(function (data) {
                 if (!data.success) return;

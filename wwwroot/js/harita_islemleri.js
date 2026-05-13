@@ -145,7 +145,7 @@ var konteynerLayer = new ol.layer.Vector({ source: konteynerSource });
 map.addLayer(konteynerLayer);
 
 function insaatlariHaritayaYukle() {
-    fetch('/Harita/InsaatlariGetir')
+    fetch('/Insaat/InsaatlariGetir')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -288,166 +288,158 @@ function tekInsaatSil(insaatId) {
 }
 
 function popupIcerikGoster(insaat, koordinat) {
-    
     content.innerHTML = '';
 
     var aPersonelListesi = insaat.aPersoneller || insaat.APersoneller || [];
     var bPersonelListesi = insaat.bPersoneller || insaat.BPersoneller || [];
 
-    var aPersonelMetni = "";
-    if (aPersonelListesi.length > 0) {
-        aPersonelMetni = aPersonelListesi.map(function (p) {
+    // A Personel etiketleri
+    var aPersonelMetni = aPersonelListesi.length > 0
+        ? aPersonelListesi.map(function (p) {
             return '<span class="personel-etiket">👷 ' + p.adSoyad +
                 ' <span class="cikar-btn" onclick="personelCikar(' + insaat.id + ', ' + p.id + ', \'A\')">×</span></span>';
-        }).join("");
-    }
+        }).join("")
+        : '<i style="color:#95a5a6; font-size:12px;">Henüz atanmamış</i>';
 
-    var bPersonelMetni = "";
-    if (bPersonelListesi.length > 0) {
-        bPersonelMetni = bPersonelListesi.map(function (p) {
+    var bPersonelMetni = bPersonelListesi.length > 0
+        ? bPersonelListesi.map(function (p) {
             return '<span class="personel-etiket b-tipi">👷 ' + p.adSoyad +
                 ' <span class="cikar-btn" onclick="personelCikar(' + insaat.id + ', ' + p.id + ', \'B\')">×</span></span>';
-        }).join("");
-    }
+        }).join("")
+        : '<i style="color:#95a5a6; font-size:12px;">Henüz atanmamış</i>';
+
+    // Atanabilir personeller 
+    var aSeceneklerHtml = tumAPersoneller.filter(function (p) {
+        return !aPersonelListesi.find(function (ap) { return ap.id === p.id; });
+    }).map(function (p) { return '<option value="' + p.id + '">' + p.adSoyad + '</option>'; }).join('');
+
+    var bSeceneklerHtml = tumBPersoneller.filter(function (p) {
+        return !bPersonelListesi.find(function (bp) { return bp.id === p.id; });
+    }).map(function (p) { return '<option value="' + p.id + '">' + p.adSoyad + '</option>'; }).join('');
+
+    var durumMetni = insaat.durumId === 0 ? '🔴 Durduruldu' : insaat.durumId === 1 ? '🟡 Devam Ediyor' : '🟢 Tamamlandı';
+    var baslamaTarihi = insaat.baslamaTarihi ? new Date(insaat.baslamaTarihi).toLocaleDateString('tr-TR') : 'Belirtilmemiş';
 
     content.innerHTML =
-        '<h5 style="margin: 0 0 5px 0; color: #2c3e50;"><b>🏢 ' + insaat.insaatAdi + '</b></h5>' +
-        '<hr style="margin: 5px 0;">' +
-        '<p style="margin: 0; font-size: 14px;"><b>Türü:</b> ' + insaat.insaatTuru + '</p>' +
-        '<p style="margin: 0; font-size: 14px;"><b>Açıklama:</b> ' + insaat.aciklama + '</p>' +
-        (insaat.baslamaTarihi ? '<p style="margin: 0; font-size: 14px;"><b>Başlama Tarihi:</b> ' + new Date(insaat.baslamaTarihi).toLocaleDateString('tr-TR') + '</p>' : '') +
+        
+        '<h5 style="margin:0 0 8px 0; color:#2c3e50; border-bottom:2px solid #2c3e50; padding-bottom:6px;">🏢 ' + insaat.insaatAdi + '</h5>' +
 
-        (aPersonelMetni ? '<div class="personel-kutu">' +
-            '<span class="personel-baslik">👷 A Sorumlu Personeller:</span>' +
-            '<div>' + aPersonelMetni + '</div>' +
-            '</div>' : '') +
+        // sekme butonları
+        '<div style="display:flex; gap:3px; margin-bottom:10px;">' +
+        '<button class="popup-sekme aktif" data-sekme="bilgi" onclick="popupSekmeDegistir(this, \'bilgi\')" style="flex:1; padding:7px; border:none; background:#3498db; color:white; cursor:pointer; border-radius:4px; font-size:12px;">📋 Bilgi</button>' +
+        '<button class="popup-sekme" data-sekme="personel" onclick="popupSekmeDegistir(this, \'personel\')" style="flex:1; padding:7px; border:none; background:#ecf0f1; color:#2c3e50; cursor:pointer; border-radius:4px; font-size:12px;">👷 Personel</button>' +
+        '<button class="popup-sekme" data-sekme="duzenle" onclick="popupSekmeDegistir(this, \'duzenle\')" style="flex:1; padding:7px; border:none; background:#ecf0f1; color:#2c3e50; cursor:pointer; border-radius:4px; font-size:12px;">⚙️ Düzenle</button>' +
+        '</div>' +
 
-        (bPersonelMetni ? '<div class="personel-kutu">' +
-            '<span class="personel-baslik">👷 B Sorumlu Personeller:</span>' +
-            '<div>' + bPersonelMetni + '</div>' +
-            '</div>' : '') +
+        // bilgi sekmesi
+        '<div class="popup-icerik" data-sekme="bilgi">' +
+        '<table style="width:100%; font-size:13px;">' +
+        '<tr><td style="padding:5px; font-weight:bold; width:40%;">Tür:</td><td>' + (insaat.insaatTuru || '-') + '</td></tr>' +
+        '<tr style="background:#f9f9f9;"><td style="padding:5px; font-weight:bold;">Açıklama:</td><td>' + (insaat.aciklama || '-') + '</td></tr>' +
+        '<tr><td style="padding:5px; font-weight:bold;">Başlama:</td><td>' + baslamaTarihi + '</td></tr>' +
+        '<tr style="background:#f9f9f9;"><td style="padding:5px; font-weight:bold;">Durum:</td><td>' + durumMetni + '</td></tr>' +
+        '<tr><td style="padding:5px; font-weight:bold;">Tamamlanma:</td><td>%' + (insaat.tamamlanmaYuzdesi || 0) + '</td></tr>' +
+        '</table>' +
+        '</div>' +
 
-        '<div style="margin-top: 10px;">' +
-        '<label style="font-size: 12px; font-weight: bold;">Durum Güncelle:</label>' +
-        '<select onchange="durumDegistir(' + insaat.id + ', this.value)" style="width: 100%; padding: 5px; margin-top: 5px;">' +
+        // personel sekmesi
+        '<div class="popup-icerik" data-sekme="personel" style="display:none;">' +
+        '<div style="margin-bottom:8px;">' +
+        '<span class="personel-baslik">A Personelleri:</span>' +
+        '<div>' + aPersonelMetni + '</div>' +
+        '</div>' +
+        '<div style="margin-bottom:8px;">' +
+        '<span class="personel-baslik">B Personelleri:</span>' +
+        '<div>' + bPersonelMetni + '</div>' +
+        '</div>' +
+        '<hr style="margin:8px 0;">' +
+        '<div style="display:flex; gap:5px; margin-bottom:5px;">' +
+        '<select id="popupAPersonelSelect" onchange="window.secilenAId=this.value" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;">' +
+        '<option value="">A personeli seç...</option>' + aSeceneklerHtml +
+        '</select>' +
+        '<button onclick="personelEkle(' + insaat.id + ', window.secilenAId, \'A\'); window.secilenAId=\'\';" style="padding:5px 12px; background:#27ae60; color:white; border:none; border-radius:4px; cursor:pointer;">➕</button>' +
+        '</div>' +
+        '<div style="display:flex; gap:5px;">' +
+        '<select id="popupBPersonelSelect" onchange="window.secilenBId=this.value" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;">' +
+        '<option value="">B personeli seç...</option>' + bSeceneklerHtml +
+        '</select>' +
+        '<button onclick="personelEkle(' + insaat.id + ', window.secilenBId, \'B\'); window.secilenBId=\'\';" style="padding:5px 12px; background:#27ae60; color:white; border:none; border-radius:4px; cursor:pointer;">➕</button>' +
+        '</div>' +
+        '</div>' +
+
+        // DÜZENLE SEKMESİ
+        '<div class="popup-icerik" data-sekme="duzenle" style="display:none;">' +
+        '<label style="font-size:12px; font-weight:bold;">Durum Güncelle:</label>' +
+        '<select onchange="durumDegistir(' + insaat.id + ', this.value)" style="width:100%; padding:5px; margin:5px 0 12px; border:1px solid #ddd; border-radius:4px;">' +
         '<option value="0" ' + (insaat.durumId === 0 ? 'selected' : '') + '>🔴 Durduruldu</option>' +
         '<option value="1" ' + (insaat.durumId === 1 ? 'selected' : '') + '>🟡 Devam Ediyor</option>' +
         '<option value="2" ' + (insaat.durumId === 2 ? 'selected' : '') + '>🟢 Tamamlandı</option>' +
         '</select>' +
-        '</div>' +
         (insaat.durumId === 1 ?
-            '<div style="margin-top: 8px;">' +
-            '<label style="font-size: 12px; font-weight: bold;">Tamamlanma Yüzdesi:</label>' +
-            '<div style="display:flex; gap:5px; margin-top:5px;">' +
-            '<input type="number" id="tamamlanmaYuzdesi" min="0" max="100" value="' + (insaat.tamamlanmaYuzdesi || 0) + '" style="width:70%; padding:5px;">' +
-            '<button onclick="yuzdeyiGuncelle(' + insaat.id + ')" style="padding:5px 10px; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer;">💾</button>' +
-            '</div>' +
+            '<label style="font-size:12px; font-weight:bold;">Tamamlanma Yüzdesi:</label>' +
+            '<div style="display:flex; gap:5px; margin-top:5px; margin-bottom:12px;">' +
+            '<input type="number" id="tamamlanmaYuzdesi" min="0" max="100" value="' + (insaat.tamamlanmaYuzdesi || 0) + '" style="flex:1; padding:5px;">' +
+            '<button onclick="yuzdeyiGuncelle(' + insaat.id + ')" style="padding:5px 12px; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer;">💾</button>' +
             '</div>' : '') +
-
-        '<div class="personel-kutu" style="margin-top:8px;">' +
-        '<span class="personel-baslik">➕ A Personeli Ekle:</span>' +
-        '<select id="popupAPersonelSelect" onchange="window.secilenAId=this.value" style="width:100%;padding:5px;margin-top:4px;border:1px solid #ddd;border-radius:4px;">' +
-        '<option value="">Seçiniz...</option>' +
-        tumAPersoneller.filter(function (p) {
-            return !(insaat.aPersoneller || []).find(function (ap) { return ap.id === p.id; });
-        }).map(function (p) { return '<option value="' + p.id + '">' + p.adSoyad + '</option>'; }).join('') +
-        '</select>' +
-        '<button onclick="personelEkle(' + insaat.id + ', window.secilenAId, \'A\'); window.secilenAId=\'\';" style="width:100%;margin-top:4px;padding:5px;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">➕ Ekle</button>' +
-        '</div>' +
-
-        '<div class="personel-kutu" style="margin-top:8px;">' +
-        '<span class="personel-baslik">➕ B Personeli Ekle:</span>' +
-        '<select id="popupBPersonelSelect" onchange="window.secilenBId=this.value" style="width:100%;padding:5px;margin-top:4px;border:1px solid #ddd;border-radius:4px;">' +
-        '<option value="">Seçiniz...</option>' +
-        tumBPersoneller.filter(function (p) {
-            return !(insaat.bPersoneller || []).find(function (bp) { return bp.id === p.id; });
-        }).map(function (p) { return '<option value="' + p.id + '">' + p.adSoyad + '</option>'; }).join('') +
-        '</select>' +
-        '<button onclick="personelEkle(' + insaat.id + ', window.secilenBId, \'B\'); window.secilenBId=\'\';" style="width:100%;margin-top:4px;padding:5px;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">➕ Ekle</button>' +
-        '</div>' +
-
-        '<button onclick="insaatSil(' + insaat.id + ')" class="button alert mini" style="width: 100%; margin-top: 10px;">' +
-        '🗑️ İnşaatı Sil' +
-        '</button>';
+    '<button onclick="insaatSil(' + insaat.id + ')" style="width:100%; padding:10px; margin-top:5px; background:#e74c3c; color:white; border:none; border-radius:4px; cursor:pointer; font-size:13px; font-weight:bold;">🗑️ İnşaatı Sil</button>' +
+        '</div>';
 
     overlay.setPosition(koordinat);
-
-    setTimeout(function () {
-        var btnA = document.getElementById('btnAEkle' + insaat.id);
-        var btnB = document.getElementById('btnBEkle' + insaat.id);
-        if (btnA) {
-            btnA.addEventListener('click', function () {
-                var v = document.getElementById('popupAPersonelSelect').value;
-                personelEkle(insaat.id, v, 'A');
-            });
-        }
-        if (btnB) {
-            btnB.addEventListener('click', function () {
-                var v = document.getElementById('popupBPersonelSelect').value;
-                personelEkle(insaat.id, v, 'B');
-            });
-        }
-    }, 100);
 }
 function konteynerPopupIcerikGoster(konteyner, koordinat) {
+    content.innerHTML = '';
+
     var aPersonelListesi = konteyner.aPersoneller || [];
     var bPersonelListesi = konteyner.bPersoneller || [];
 
-    var aPersonelMetni = "";
-    if (aPersonelListesi.length > 0) {
-        aPersonelMetni = aPersonelListesi.map(function (p) {
+    var aPersonelMetni = aPersonelListesi.length > 0
+        ? aPersonelListesi.map(function (p) {
             return '<span class="personel-etiket">👷 ' + p.adSoyad +
                 ' <span class="cikar-btn" onclick="konteynerPersonelCikar(' + konteyner.id + ', ' + p.id + ', \'A\')">×</span></span>';
-        }).join("");
-    }
+        }).join("")
+        : '<i style="color:#95a5a6; font-size:12px;">Henüz atanmamış</i>';
 
-    var bPersonelMetni = "";
-    if (bPersonelListesi.length > 0) {
-        bPersonelMetni = bPersonelListesi.map(function (p) {
+    var bPersonelMetni = bPersonelListesi.length > 0
+        ? bPersonelListesi.map(function (p) {
             return '<span class="personel-etiket b-tipi">👷 ' + p.adSoyad +
                 ' <span class="cikar-btn" onclick="konteynerPersonelCikar(' + konteyner.id + ', ' + p.id + ', \'B\')">×</span></span>';
-        }).join("");
-    }
+        }).join("")
+        : '<i style="color:#95a5a6; font-size:12px;">Henüz atanmamış</i>';
+
+    var aSeceneklerHtml = tumAPersoneller.filter(function (p) {
+        return !aPersonelListesi.find(function (ap) { return ap.id === p.id; });
+    }).map(function (p) { return '<option value="' + p.id + '">' + p.adSoyad + '</option>'; }).join('');
+
+    var bSeceneklerHtml = tumBPersoneller.filter(function (p) {
+        return !bPersonelListesi.find(function (bp) { return bp.id === p.id; });
+    }).map(function (p) { return '<option value="' + p.id + '">' + p.adSoyad + '</option>'; }).join('');
 
     content.innerHTML =
-        '<h5 style="margin: 0 0 5px 0; color: #2c3e50;"><b>🏠 ' + konteyner.ad + '</b></h5>' +
-        '<hr style="margin: 5px 0;">' +
+        '<h5 style="margin:0 0 8px 0; color:#2c3e50; border-bottom:2px solid #2c3e50; padding-bottom:6px;">🏠 ' + konteyner.ad + '</h5>' +
 
-        (aPersonelMetni ? '<div class="personel-kutu">' +
-            '<span class="personel-baslik">👷 A Sorumlu Personeller:</span>' +
-            '<div>' + aPersonelMetni + '</div>' +
-            '</div>' : '') +
-
-        (bPersonelMetni ? '<div class="personel-kutu">' +
-            '<span class="personel-baslik">👷 B Sorumlu Personeller:</span>' +
-            '<div>' + bPersonelMetni + '</div>' +
-            '</div>' : '') +
-
-        '<div class="personel-kutu" style="margin-top:8px;">' +
-        '<span class="personel-baslik">➕ A Personeli Ekle:</span>' +
-        '<select id="popupKonteynerASelect" onchange="window.secilenKonteynerAId=this.value" style="width:100%;padding:5px;margin-top:4px;border:1px solid #ddd;border-radius:4px;">' +
-        '<option value="">Seçiniz...</option>' +
-        tumAPersoneller.filter(function (p) {
-            return !aPersonelListesi.find(function (ap) { return ap.id === p.id; });
-        }).map(function (p) { return '<option value="' + p.id + '">' + p.adSoyad + '</option>'; }).join('') +
-        '</select>' +
-        '<button onclick="konteynerPersonelEkle(' + konteyner.id + ', window.secilenKonteynerAId, \'A\');" style="width:100%;margin-top:4px;padding:5px;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">➕ Ekle</button>' +
+        '<div style="margin-bottom:8px;">' +
+        '<span class="personel-baslik">A Personelleri:</span>' +
+        '<div>' + aPersonelMetni + '</div>' +
         '</div>' +
-
-        '<div class="personel-kutu" style="margin-top:8px;">' +
-        '<span class="personel-baslik">➕ B Personeli Ekle:</span>' +
-        '<select id="popupKonteynerBSelect" onchange="window.secilenKonteynerBId=this.value" style="width:100%;padding:5px;margin-top:4px;border:1px solid #ddd;border-radius:4px;">' +
-        '<option value="">Seçiniz...</option>' +
-        tumBPersoneller.filter(function (p) {
-            return !bPersonelListesi.find(function (bp) { return bp.id === p.id; });
-        }).map(function (p) { return '<option value="' + p.id + '">' + p.adSoyad + '</option>'; }).join('') +
-        '</select>' +
-        '<button onclick="konteynerPersonelEkle(' + konteyner.id + ', window.secilenKonteynerBId, \'B\');" style="width:100%;margin-top:4px;padding:5px;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">➕ Ekle</button>' +
+        '<div style="margin-bottom:8px;">' +
+        '<span class="personel-baslik">B Personelleri:</span>' +
+        '<div>' + bPersonelMetni + '</div>' +
         '</div>' +
-
-        '<button onclick="konteynerSil(' + konteyner.id + ')" class="button alert mini" style="width: 100%; margin-top: 10px;">' +
-        '🗑️ Konteyneri Sil' +
-        '</button>';
+        '<hr style="margin:8px 0;">' +
+        '<div style="display:flex; gap:5px; margin-bottom:5px;">' +
+        '<select id="popupKonteynerASelect" onchange="window.secilenKonteynerAId=this.value" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;">' +
+        '<option value="">A personeli seç...</option>' + aSeceneklerHtml +
+        '</select>' +
+        '<button onclick="konteynerPersonelEkle(' + konteyner.id + ', window.secilenKonteynerAId, \'A\');" style="padding:5px 12px; background:#27ae60; color:white; border:none; border-radius:4px; cursor:pointer;">➕</button>' +
+        '</div>' +
+        '<div style="display:flex; gap:5px;">' +
+        '<select id="popupKonteynerBSelect" onchange="window.secilenKonteynerBId=this.value" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;">' +
+        '<option value="">B personeli seç...</option>' + bSeceneklerHtml +
+        '</select>' +
+        '<button onclick="konteynerPersonelEkle(' + konteyner.id + ', window.secilenKonteynerBId, \'B\');" style="padding:5px 12px; background:#27ae60; color:white; border:none; border-radius:4px; cursor:pointer;">➕</button>' +
+        '</div>' +
+        '<hr style="margin:10px 0;">' +
+        '<button onclick="konteynerSil(' + konteyner.id + ')" style="width:100%; padding:10px; background:#e74c3c; color:white; border:none; border-radius:4px; cursor:pointer; font-size:13px; font-weight:bold;">🗑️ Konteyneri Sil</button>';
 
     overlay.setPosition(koordinat);
 }
@@ -793,7 +785,7 @@ window.addEventListener('load', function () {
             }
 
 
-            fetch('/Harita/InsaatEkle', {
+            fetch('/Insaat/InsaatEkle', {
                 method: 'POST',
                 body: formVerileri
             })
@@ -866,7 +858,7 @@ window.addEventListener('load', function () {
             formVerisi.append("id", id);
             formVerisi.append("yeniDurumId", yeniId);
 
-            fetch('/Harita/DurumGuncelle', { method: 'POST', body: formVerisi })
+            fetch('/Insaat/DurumGuncelle', { method: 'POST', body: formVerisi })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -910,7 +902,7 @@ window.addEventListener('load', function () {
             var formVerisi = new FormData();
             formVerisi.append("id", id);
             formVerisi.append("yuzde", yuzde);
-            fetch('/Harita/YuzdeGuncelle', { method: 'POST', body: formVerisi })
+            fetch('/Insaat/YuzdeGuncelle', { method: 'POST', body: formVerisi })
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
                     if (data.success) {
@@ -939,7 +931,7 @@ window.addEventListener('load', function () {
             if (!confirm("Bu inşaat kaydını tamamen silmek istediğinize emin misiniz?")) return;
             var formVerisi = new FormData();
             formVerisi.append("id", id);
-            fetch('/Harita/InsaatSil', { method: 'POST', body: formVerisi })
+            fetch('/Insaat/InsaatSil', { method: 'POST', body: formVerisi })
                 .then(res => {
                     if (!res.ok) throw new Error("Sunucu hatası");
                     return res.json();
@@ -970,7 +962,7 @@ window.addEventListener('load', function () {
             formVerisi.append("personelId", personelId);
             formVerisi.append("personelTipi", tip);
 
-            fetch('/Harita/PersonelCikar', { method: 'POST', body: formVerisi })
+            fetch('/Insaat/PersonelCikar', { method: 'POST', body: formVerisi })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -1009,7 +1001,7 @@ window.addEventListener('load', function () {
             formVerisi.append("personelId", personelId);
             formVerisi.append("personelTipi", tip);
 
-            fetch('/Harita/PersonelEkle', { method: 'POST', body: formVerisi })
+            fetch('/Insaat/PersonelEkle', { method: 'POST', body: formVerisi })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -1126,7 +1118,7 @@ window.addEventListener('load', function () {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-    fetch('/Harita/PersonelleriGetir')
+    fetch('/Insaat/PersonelleriGetir')
         .then(function (res) { return res.json(); })
         .then(function (data) {
             if (data.success) {
@@ -1190,3 +1182,22 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("Personeller yüklenirken hata:", err);
         });
 });
+window.popupSekmeDegistir = function (btn, sekmeAdi) {
+    var container = btn.closest('.ol-popup');
+    if (!container) return;
+
+    container.querySelectorAll('.popup-sekme').forEach(function (b) {
+        b.style.background = '#ecf0f1';
+        b.style.color = '#2c3e50';
+        b.classList.remove('aktif');
+    });
+    btn.style.background = '#3498db';
+    btn.style.color = 'white';
+    btn.classList.add('aktif');
+
+    container.querySelectorAll('.popup-icerik').forEach(function (i) {
+        i.style.display = 'none';
+    });
+    var hedef = container.querySelector('.popup-icerik[data-sekme="' + sekmeAdi + '"]');
+    if (hedef) hedef.style.display = 'block';
+};
