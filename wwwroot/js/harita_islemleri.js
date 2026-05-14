@@ -293,22 +293,17 @@ function popupIcerikGoster(insaat, koordinat) {
     var aPersonelListesi = insaat.aPersoneller || insaat.APersoneller || [];
     var bPersonelListesi = insaat.bPersoneller || insaat.BPersoneller || [];
 
-    // A Personel etiketleri
-    var aPersonelMetni = aPersonelListesi.length > 0
-        ? aPersonelListesi.map(function (p) {
-            return '<span class="personel-etiket">👷 ' + p.adSoyad +
-                ' <span class="cikar-btn" onclick="personelCikar(' + insaat.id + ', ' + p.id + ', \'A\')">×</span></span>';
-        }).join("")
-        : '<i style="color:#95a5a6; font-size:12px;">Henüz atanmamış</i>';
+    var aPersonelMetni = aPersonelListesi.map(function (p) {
+        return '<span class="personel-etiket">👷 ' + p.adSoyad +
+            ' <span class="cikar-btn" onclick="personelCikar(' + insaat.id + ', ' + p.id + ', \'A\')">×</span></span>';
+    }).join("");
 
-    var bPersonelMetni = bPersonelListesi.length > 0
-        ? bPersonelListesi.map(function (p) {
-            return '<span class="personel-etiket b-tipi">👷 ' + p.adSoyad +
-                ' <span class="cikar-btn" onclick="personelCikar(' + insaat.id + ', ' + p.id + ', \'B\')">×</span></span>';
-        }).join("")
-        : '<i style="color:#95a5a6; font-size:12px;">Henüz atanmamış</i>';
+    var bPersonelMetni = bPersonelListesi.map(function (p) {
+        return '<span class="personel-etiket b-tipi">👷 ' + p.adSoyad +
+            ' <span class="cikar-btn" onclick="personelCikar(' + insaat.id + ', ' + p.id + ', \'B\')">×</span></span>';
+    }).join("");
 
-    // Atanabilir personeller 
+    
     var aSeceneklerHtml = tumAPersoneller.filter(function (p) {
         return !aPersonelListesi.find(function (ap) { return ap.id === p.id; });
     }).map(function (p) { return '<option value="' + p.id + '">' + p.adSoyad + '</option>'; }).join('');
@@ -342,16 +337,16 @@ function popupIcerikGoster(insaat, koordinat) {
         '</table>' +
         '</div>' +
 
-        // personel sekmesi
-        '<div class="popup-icerik" data-sekme="personel" style="display:none;">' +
-        '<div style="margin-bottom:8px;">' +
+    '<div class="popup-icerik" data-sekme="personel" style="display:none;">' +
+    (aPersonelMetni ? '<div style="margin-bottom:8px;">' +
         '<span class="personel-baslik">A Personelleri:</span>' +
         '<div>' + aPersonelMetni + '</div>' +
-        '</div>' +
-        '<div style="margin-bottom:8px;">' +
+        '</div>' : '') +
+    (bPersonelMetni ? '<div style="margin-bottom:8px;">' +
         '<span class="personel-baslik">B Personelleri:</span>' +
         '<div>' + bPersonelMetni + '</div>' +
-        '</div>' +
+        '</div>' : '') +
+
         '<hr style="margin:8px 0;">' +
         '<div style="display:flex; gap:5px; margin-bottom:5px;">' +
         '<select id="popupAPersonelSelect" onchange="window.secilenAId=this.value" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;">' +
@@ -392,19 +387,15 @@ function konteynerPopupIcerikGoster(konteyner, koordinat) {
     var aPersonelListesi = konteyner.aPersoneller || [];
     var bPersonelListesi = konteyner.bPersoneller || [];
 
-    var aPersonelMetni = aPersonelListesi.length > 0
-        ? aPersonelListesi.map(function (p) {
-            return '<span class="personel-etiket">👷 ' + p.adSoyad +
-                ' <span class="cikar-btn" onclick="konteynerPersonelCikar(' + konteyner.id + ', ' + p.id + ', \'A\')">×</span></span>';
-        }).join("")
-        : '<i style="color:#95a5a6; font-size:12px;">Henüz atanmamış</i>';
+    var aPersonelMetni = aPersonelListesi.map(function (p) {
+        return '<span class="personel-etiket">👷 ' + p.adSoyad +
+            ' <span class="cikar-btn" onclick="konteynerPersonelCikar(' + konteyner.id + ', ' + p.id + ', \'A\')">×</span></span>';
+    }).join("");
 
-    var bPersonelMetni = bPersonelListesi.length > 0
-        ? bPersonelListesi.map(function (p) {
-            return '<span class="personel-etiket b-tipi">👷 ' + p.adSoyad +
-                ' <span class="cikar-btn" onclick="konteynerPersonelCikar(' + konteyner.id + ', ' + p.id + ', \'B\')">×</span></span>';
-        }).join("")
-        : '<i style="color:#95a5a6; font-size:12px;">Henüz atanmamış</i>';
+    var bPersonelMetni = bPersonelListesi.map(function (p) {
+        return '<span class="personel-etiket b-tipi">👷 ' + p.adSoyad +
+            ' <span class="cikar-btn" onclick="konteynerPersonelCikar(' + konteyner.id + ', ' + p.id + ', \'B\')">×</span></span>';
+    }).join("");
 
     var aSeceneklerHtml = tumAPersoneller.filter(function (p) {
         return !aPersonelListesi.find(function (ap) { return ap.id === p.id; });
@@ -417,14 +408,15 @@ function konteynerPopupIcerikGoster(konteyner, koordinat) {
     content.innerHTML =
         '<h5 style="margin:0 0 8px 0; color:#2c3e50; border-bottom:2px solid #2c3e50; padding-bottom:6px;">🏠 ' + konteyner.ad + '</h5>' +
 
-        '<div style="margin-bottom:8px;">' +
-        '<span class="personel-baslik">A Personelleri:</span>' +
-        '<div>' + aPersonelMetni + '</div>' +
-        '</div>' +
-        '<div style="margin-bottom:8px;">' +
-        '<span class="personel-baslik">B Personelleri:</span>' +
-        '<div>' + bPersonelMetni + '</div>' +
-        '</div>' +
+        (aPersonelMetni ? '<div style="margin-bottom:8px;">' +
+            '<span class="personel-baslik">A Personelleri:</span>' +
+            '<div>' + aPersonelMetni + '</div>' +
+            '</div>' : '') +
+        (bPersonelMetni ? '<div style="margin-bottom:8px;">' +
+            '<span class="personel-baslik">B Personelleri:</span>' +
+            '<div>' + bPersonelMetni + '</div>' +
+        '</div>' : '') +
+
         '<hr style="margin:8px 0;">' +
         '<div style="display:flex; gap:5px; margin-bottom:5px;">' +
         '<select id="popupKonteynerASelect" onchange="window.secilenKonteynerAId=this.value" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;">' +
@@ -1053,7 +1045,7 @@ window.addEventListener('load', function () {
         };
 
         window.konteynerPersonelEkle = function (konteynerId, personelId, tip) {
-            if (!personelId || personelId === '' || personelId === 'undefined') return;
+            if (!personelId || String(personelId).trim() === '' || personelId === 'undefined' || personelId === undefined || personelId === null) return;
 
             
             if (window.konteynerPersonelKilit) return;
@@ -1129,7 +1121,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 var bSelectEl = document.getElementById('bPersonelSelect');
 
                 if (aSelectEl) {
-                    aSelectEl.innerHTML = '<option value="">Seçiniz...</option>';
+                    aSelectEl.innerHTML = '';
                     tumAPersoneller.forEach(function (p) {
                         var opt = document.createElement('option');
                         opt.value = p.id;
@@ -1143,7 +1135,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 if (bSelectEl) {
-                    bSelectEl.innerHTML = '<option value="">Seçiniz...</option>';
+                    bSelectEl.innerHTML = '';
                     tumBPersoneller.forEach(function (p) {
                         var opt = document.createElement('option');
                         opt.value = p.id;
@@ -1157,7 +1149,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
                 var konteynerASelectEl = document.getElementById('konteynerAPersonelSelect');
                 if (konteynerASelectEl) {
-                    konteynerASelectEl.innerHTML = '<option value="">Seçiniz...</option>';
+                    konteynerASelectEl.innerHTML = '';
                     tumAPersoneller.forEach(function (p) {
                         var opt = document.createElement('option');
                         opt.value = p.id;
@@ -1168,7 +1160,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 var konteynerBSelectEl = document.getElementById('konteynerBPersonelSelect');
                 if (konteynerBSelectEl) {
-                    konteynerBSelectEl.innerHTML = '<option value="">Seçiniz...</option>';
+                    konteynerBSelectEl.innerHTML = '';
                     tumBPersoneller.forEach(function (p) {
                         var opt = document.createElement('option');
                         opt.value = p.id;
@@ -1199,5 +1191,24 @@ window.popupSekmeDegistir = function (btn, sekmeAdi) {
         i.style.display = 'none';
     });
     var hedef = container.querySelector('.popup-icerik[data-sekme="' + sekmeAdi + '"]');
+    if (hedef) hedef.style.display = 'block';
+};
+window.formSekmeDegistir = function (btn, sekmeAdi, formTipi) {
+    var container = btn.closest('.dialog');
+    if (!container) return;
+
+    container.querySelectorAll('.form-sekme').forEach(function (b) {
+        b.style.background = '#ecf0f1';
+        b.style.color = '#2c3e50';
+        b.classList.remove('aktif');
+    });
+    btn.style.background = '#3498db';
+    btn.style.color = 'white';
+    btn.classList.add('aktif');
+
+    container.querySelectorAll('.form-icerik[data-tip="' + formTipi + '"]').forEach(function (i) {
+        i.style.display = 'none';
+    });
+    var hedef = container.querySelector('.form-icerik[data-sekme="' + sekmeAdi + '"][data-tip="' + formTipi + '"]');
     if (hedef) hedef.style.display = 'block';
 };

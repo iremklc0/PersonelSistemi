@@ -40,10 +40,19 @@
         </div>
     </div>
 
-    <div class="dialog" data-role="dialog" id="insaatDialog" data-width="400" data-cls-dialog="dialog-yukari">
-        <div class="dialog-title">🏗️ Yeni İnşaat Başlat</div>
-        <div class="dialog-content">
-            <form id="frmInsaatEkle">
+    <div class="dialog" data-role="dialog" id="insaatDialog" data-width="500" data-cls-dialog="dialog-yukari">
+    <div class="dialog-title">🏗️ Yeni İnşaat Başlat</div>
+    <div class="dialog-content" style="min-height: 380px;">
+        <form id="frmInsaatEkle">
+            <!-- SEKME BUTONLARI -->
+            <div style="display:flex; gap:3px; margin-bottom:15px; border-bottom:1px solid #ddd;">
+                <button type="button" class="form-sekme aktif" data-sekme="bilgi" onclick="formSekmeDegistir(this, 'bilgi', 'insaat')" style="flex:1; padding:8px; border:none; background:#3498db; color:white; cursor:pointer; border-radius:4px 4px 0 0; font-size:13px;">📋 Bilgi</button>
+                <button type="button" class="form-sekme" data-sekme="personel" onclick="formSekmeDegistir(this, 'personel', 'insaat')" style="flex:1; padding:8px; border:none; background:#ecf0f1; color:#2c3e50; cursor:pointer; border-radius:4px 4px 0 0; font-size:13px;">👷 Personel</button>
+                <button type="button" class="form-sekme" data-sekme="durum" onclick="formSekmeDegistir(this, 'durum', 'insaat')" style="flex:1; padding:8px; border:none; background:#ecf0f1; color:#2c3e50; cursor:pointer; border-radius:4px 4px 0 0; font-size:13px;">⚙️ Durum</button>
+            </div>
+
+            <!-- BİLGİ SEKMESİ -->
+            <div class="form-icerik" data-sekme="bilgi" data-tip="insaat">
                 <div class="form-group">
                     <label>İnşaat Adı (Proje İsmi)</label>
                     <input type="text" name="InsaatAdi" required>
@@ -56,7 +65,27 @@
                     <label>Açıklama</label>
                     <input type="text" name="Aciklama" required>
                 </div>
+            </div>
+
+            <!-- PERSONEL SEKMESİ -->
+            <div class="form-icerik" data-sekme="personel" data-tip="insaat" style="display:none;">
+                <div class="form-group">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">👷 A Personelleri</label>
+                    <select name="secilenAPersoneller" id="aPersonelSelect" multiple size="1" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:5px; height: 38px;">
+                        
+                    </select>
+                </div>
                 <div class="form-group mt-2">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">👷 B Personelleri</label>
+                    <select name="secilenBPersoneller" id="bPersonelSelect" multiple size="1" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:5px; height: 38px;">
+                       
+                    </select>
+                </div>
+            </div>
+
+            <!-- DURUM SEKMESİ -->
+            <div class="form-icerik" data-sekme="durum" data-tip="insaat" style="display:none;">
+                <div class="form-group">
                     <label>Başlama Tarihi</label>
                     <input type="date" name="BaslamaTarihi">
                 </div>
@@ -68,29 +97,18 @@
                         <option value="2">🟢 Yeşil (Tamamlandı)</option>
                     </select>
                 </div>
-                <div class="form-group mt-2">
-                    <label style="display:block; font-weight:bold; margin-bottom:5px;">👷 A Personelleri</label>
-                    <select name="secilenAPersoneller" id="aPersonelSelect" multiple size="1" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:5px; height:38px;">
-                        <option value="">Seçiniz...</option>
-                    </select>
-                </div>
+            </div>
 
-                <div class="form-group mt-2">
-                    <label style="display:block; font-weight:bold; margin-bottom:5px;">👷 B Personelleri</label>
-                    <select name="secilenBPersoneller" id="bPersonelSelect" multiple size="1" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:5px; height:38px;">
-                        <option value="">Seçiniz...</option>
-                    </select>
-                </div>
-                <input type="hidden" id="gizliKoordinatX" name="KoordinatX">
-                <input type="hidden" id="gizliKoordinatY" name="KoordinatY">
-                <div class="mt-2 text-small text-muted" id="koordinatBilgiMetni"></div>
-            </form>
-        </div>
-        <div class="dialog-actions text-right">
-            <button class="button js-dialog-close">İptal</button>
-            <button class="button primary" id="btnKaydet">Veritabanına Kaydet</button>
-        </div>
+            <input type="hidden" id="gizliKoordinatX" name="KoordinatX">
+            <input type="hidden" id="gizliKoordinatY" name="KoordinatY">
+            <div class="mt-2 text-small text-muted" id="koordinatBilgiMetni"></div>
+        </form>
     </div>
+    <div class="dialog-actions text-right">
+        <button class="button js-dialog-close">İptal</button>
+        <button class="button primary" id="btnKaydet">Veritabanına Kaydet</button>
+    </div>
+</div>
     <div class="dialog" data-role="dialog" id="konteynerDialog" data-width="400" data-cls-dialog="dialog-yukari">
         <div class="dialog-title">🏠 Yeni Konteyner Ekle</div>
         <div class="dialog-content">
@@ -104,13 +122,13 @@
                 <div class="form-group mt-2">
                     <label style="display:block; font-weight:bold; margin-bottom:5px;">👷 A Personelleri</label>
                     <select name="secilenAPersoneller" id="konteynerAPersonelSelect" multiple size="1" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:5px; height: 38px;">
-                        <option value="">Seçiniz...</option>
+                       
                     </select>
                 </div>
                 <div class="form-group mt-2">
                     <label style="display:block; font-weight:bold; margin-bottom:5px;">👷 B Personelleri</label>
                     <select name="secilenBPersoneller" id="konteynerBPersonelSelect" multiple size="1" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:5px; height: 38px;">
-                        <option value="">Seçiniz...</option>
+                       
                     </select>
                 </div>
                 <input type="hidden" id="konteynerKoordinatX" name="Enlem">
