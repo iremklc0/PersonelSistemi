@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PersonelSistemi.Models;
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 

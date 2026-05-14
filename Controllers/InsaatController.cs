@@ -5,6 +5,10 @@ using PersonelSistemi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
+using MiniSoftware;
 
 namespace PersonelSistemi.Controllers
 {
@@ -229,6 +233,145 @@ namespace PersonelSistemi.Controllers
 
             return View();
         }
+
+
+        public IActionResult RaporPdf(int id)
+        {
+            var insaat = _context.Insaatlar
+                .Include(x => x.InsaatDurumu)
+                .Include(x => x.InsaatPersonelleri).ThenInclude(ip => ip.Personel)
+                .Include(x => x.InsaatBPersonelleri).ThenInclude(ibp => ibp.BPersonel)
+                .FirstOrDefault(x => x.Id == id);
+
+            if (insaat == null) return NotFound();
+
+            var aPersoneller = insaat.InsaatPersonelleri
+                .Where(ip => ip.Personel != null)
+                .Select(ip => ip.Personel!.adi + " " + ip.Personel!.soyadi)
+                .ToList();
+
+            var bPersoneller = insaat.InsaatBPersonelleri
+                .Where(ibp => ibp.BPersonel != null)
+                .Select(ibp => ibp.BPersonel!.adi + " " + ibp.BPersonel!.soyadi)
+                .ToList();
+
+            var durum = insaat.DurumId == 0 ? "Durduruldu" : insaat.DurumId == 1 ? "Devam Ediyor" : "Tamamlandı";
+            var tarih = insaat.BaslamaTarihi.HasValue ? insaat.BaslamaTarihi.Value.ToLocalTime().ToString("dd.MM.yyyy") : "Belirtilmemiş";
+            var logoPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "otek-logo.png.webp");
+
+            var pdfBytes = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(40);
+                    page.DefaultTextStyle(t => t.FontSize(11));
+
+                    // ÜST KISIM - LOGO + BAŞLIK
+                    page.Header().Column(col =>
+                    {
+                        if (System.IO.File.Exists(logoPath))
+                        {
+                            col.Item().AlignCenter().Height(70).Image(logoPath);
+                        }
+                        col.Item().PaddingTop(10).Text("İnşaat Durum Raporu")
+                            .FontSize(18).Bold().AlignCenter().FontColor(Colors.Grey.Darken3);
+                        col.Item().PaddingBottom(10).LineHorizontal(2).LineColor(Colors.Grey.Darken3);
+                    });
+
+                    // İÇERİK - TABLO
+                    page.Content().PaddingVertical(15).Column(col =>
+                    {
+                        col.Item().PaddingBottom(10).Text(insaat.InsaatAdi ?? "")
+                            .FontSize(16).Bold().FontColor(Colors.Blue.Darken2);
+
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(c =>
+                            {
+                                c.RelativeColumn(2);
+                                c.RelativeColumn(4);
+                            });
+
+                            void Satir(string baslik, string deger, bool gri = false)
+                            {
+                                var arkaplan = gri ? Colors.Grey.Lighten3 : Colors.White;
+                                table.Cell().Background(Colors.Grey.Lighten2).Border(1).BorderColor(Colors.Grey.Medium).Padding(8).Text(baslik).Bold();
+                                table.Cell().Background(arkaplan).Border(1).BorderColor(Colors.Grey.Medium).Padding(8).Text(deger);
+                            }
+
+                            Satir("Tür:", insaat.InsaatTuru ?? "-");
+                            Satir("Durum:", durum, true);
+                            Satir("Açıklama:", insaat.Aciklama ?? "-");
+                            Satir("Başlama Tarihi:", tarih, true);
+                            Satir("Tamamlanma:", "%" + insaat.TamamlanmaYuzdesi);
+                            Satir("A Personelleri:", aPersoneller.Any() ? string.Join(", ", aPersoneller) : "Yok", true);
+                            Satir("B Personelleri:", bPersoneller.Any() ? string.Join(", ", bPersoneller) : "Yok");
+                        });
+                    });
+
+                    // ALT KISIM - TARİH
+                    page.Footer().AlignRight().Text(t =>
+                    {
+                        t.Span("Rapor Tarihi: ").FontSize(9).FontColor(Colors.Grey.Darken1);
+                        t.Span(DateTime.Now.ToString("dd.MM.yyyy HH:mm")).FontSize(9).FontColor(Colors.Grey.Darken1);
+                    });
+                });
+            }).GeneratePdf();
+
+            return File(pdfBytes, "application/pdf", "InsaatRaporu_" + insaat.InsaatAdi + ".pdf");
+        }
+        public IActionResult RaporWord(int id)
+        {
+            var insaat = _context.Insaatlar
+                .Include(x => x.InsaatDurumu)
+                .Include(x => x.InsaatPersonelleri).ThenInclude(ip => ip.Personel)
+                .Include(x => x.InsaatBPersonelleri).ThenInclude(ibp => ibp.BPersonel)
+                .FirstOrDefault(x => x.Id == id);
+
+            if (insaat == null) return NotFound();
+
+            var aPersoneller = insaat.InsaatPersonelleri
+                .Where(ip => ip.Personel != null)
+                .Select(ip => ip.Personel!.adi + " " + ip.Personel!.soyadi)
+                .ToList();
+
+            var bPersoneller = insaat.InsaatBPersonelleri
+                .Where(ibp => ibp.BPersonel != null)
+                .Select(ibp => ibp.BPersonel!.adi + " " + ibp.BPersonel!.soyadi)
+                .ToList();
+
+            var durum = insaat.DurumId == 0 ? "Durduruldu" : insaat.DurumId == 1 ? "Devam Ediyor" : "Tamamlandı";
+            var tarih = insaat.BaslamaTarihi.HasValue ? insaat.BaslamaTarihi.Value.ToLocalTime().ToString("dd.MM.yyyy") : "Belirtilmemiş";
+
+            var templatePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "templates", "rapor-sablonu.docx");
+            if (!System.IO.File.Exists(templatePath))
+            {
+                return Content("Şablon dosyası bulunamadı: " + templatePath);
+            }
+
+            var veri = new Dictionary<string, object>
+            {
+                ["insaatAdi"] = insaat.InsaatAdi ?? "-",
+                ["insaatTuru"] = insaat.InsaatTuru ?? "-",
+                ["durum"] = durum,
+                ["aciklama"] = insaat.Aciklama ?? "-",
+                ["baslamaTarihi"] = tarih,
+                ["tamamlanmaYuzdesi"] = "%" + insaat.TamamlanmaYuzdesi,
+                ["aPersoneller"] = aPersoneller.Any() ? string.Join(", ", aPersoneller) : "Yok",
+                ["bPersoneller"] = bPersoneller.Any() ? string.Join(", ", bPersoneller) : "Yok",
+                ["raporTarihi"] = DateTime.Now.ToString("dd.MM.yyyy HH:mm")
+            };
+
+            using (var memoryStream = new MemoryStream())
+            {
+                MiniWord.SaveAsByTemplate(memoryStream, templatePath, veri);
+                var wordBytes = memoryStream.ToArray();
+                return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            "InsaatRaporu_" + insaat.InsaatAdi + ".docx");
+            }
+        }
+
         [HttpPost]
         public IActionResult InsaatSil(int id)
         {
