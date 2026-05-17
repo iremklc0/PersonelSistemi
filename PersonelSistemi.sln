@@ -5,7 +5,7 @@ VisualStudioVersion = 18.3.11520.95
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonelSistemi", "PersonelSistemi.csproj", "{218999AC-25FF-035A-898A-21B3819E39C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonelSistemi.Tests", "..\PersonelSistemi.Tests\PersonelSistemi.Tests.csproj", "{C3D65439-A68E-462E-AD6E-57FF437E3076}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonelSistemi.Tests", "PersonelSistemi.Tests\PersonelSistemi.Tests.csproj", "{B97ED157-18C7-A529-0299-96715CE3473A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{218999AC-25FF-035A-898A-21B3819E39C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{218999AC-25FF-035A-898A-21B3819E39C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{218999AC-25FF-035A-898A-21B3819E39C2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C3D65439-A68E-462E-AD6E-57FF437E3076}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C3D65439-A68E-462E-AD6E-57FF437E3076}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C3D65439-A68E-462E-AD6E-57FF437E3076}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C3D65439-A68E-462E-AD6E-57FF437E3076}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B97ED157-18C7-A529-0299-96715CE3473A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B97ED157-18C7-A529-0299-96715CE3473A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B97ED157-18C7-A529-0299-96715CE3473A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B97ED157-18C7-A529-0299-96715CE3473A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
