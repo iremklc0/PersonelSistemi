@@ -144,5 +144,146 @@ namespace PersonelSistemi.Tests
 
             Assert.IsType<JsonResult>(sonuc);
         }
+
+        // TEST 9: PersonelEkle gecerli A personeli eklemeli
+        [Fact]
+        public void PersonelEkle_GecerliAPersonel_BasariliEklenmeli()
+        {
+            var context = SahteVeritabaniOlustur();
+            var insaat = SahteInsaatOlustur(context);
+
+            var personel = new Personel
+            {
+                adi = "Ali",
+                soyadi = "Veli",
+                cinsiyet = "Erkek",
+                tc = "12345678901",
+                personel_id = "P001"
+            };
+            context.Personeller.Add(personel);
+            context.SaveChanges();
+
+            var controller = new InsaatController(context);
+            var sonuc = controller.PersonelEkle(insaat.Id, personel.objectid, "A");
+
+            Assert.IsType<JsonResult>(sonuc);
+            Assert.Single(context.InsaatPersonelleri);
+        }
+
+        // TEST 10: PersonelEkle olmayan insaat hata vermeli
+        [Fact]
+        public void PersonelEkle_OlmayanInsaat_HataVermeli()
+        {
+            var context = SahteVeritabaniOlustur();
+            var controller = new InsaatController(context);
+
+            var sonuc = controller.PersonelEkle(99999, 1, "A");
+
+            Assert.IsType<JsonResult>(sonuc);
+            Assert.Empty(context.InsaatPersonelleri);
+        }
+
+        // TEST 11: PersonelEkle ayni personeli iki kez eklemeye calisma
+        [Fact]
+        public void PersonelEkle_AyniPersonelTekrar_HataVermeli()
+        {
+            var context = SahteVeritabaniOlustur();
+            var insaat = SahteInsaatOlustur(context);
+
+            var personel = new Personel
+            {
+                adi = "Test",
+                soyadi = "Kisi",
+                cinsiyet = "Kadın",
+                tc = "11122233344",
+                personel_id = "P002"
+            };
+            context.Personeller.Add(personel);
+            context.SaveChanges();
+
+            var controller = new InsaatController(context);
+            controller.PersonelEkle(insaat.Id, personel.objectid, "A"); // İlk ekleme
+            var sonuc = controller.PersonelEkle(insaat.Id, personel.objectid, "A"); // İkinci ekleme
+
+            Assert.IsType<JsonResult>(sonuc);
+            Assert.Single(context.InsaatPersonelleri); // Hala 1 tane olmali, 2 olmamali
+        }
+
+        // TEST 12: PersonelCikar var olan personeli cikarmali
+        [Fact]
+        public void PersonelCikar_VarOlanPersonel_BasariliCikarmali()
+        {
+            var context = SahteVeritabaniOlustur();
+            var insaat = SahteInsaatOlustur(context);
+
+            var personel = new Personel
+            {
+                adi = "Test",
+                soyadi = "Kisi",
+                cinsiyet = "Erkek",
+                tc = "55566677788",
+                personel_id = "P003"
+            };
+            context.Personeller.Add(personel);
+            context.InsaatPersonelleri.Add(new InsaatPersonel { InsaatId = insaat.Id, PersonelId = personel.objectid });
+            context.SaveChanges();
+
+            var controller = new InsaatController(context);
+            var sonuc = controller.PersonelCikar(insaat.Id, personel.objectid, "A");
+
+            Assert.IsType<JsonResult>(sonuc);
+            Assert.Empty(context.InsaatPersonelleri);
+        }
+
+        // TEST 13: InsaatSil var olan insaati silmeli
+        [Fact]
+        public void InsaatSil_VarOlanInsaat_BasariliSilinmeli()
+        {
+            var context = SahteVeritabaniOlustur();
+            var insaat = SahteInsaatOlustur(context);
+
+            var controller = new InsaatController(context);
+            var sonuc = controller.InsaatSil(insaat.Id);
+
+            Assert.IsType<JsonResult>(sonuc);
+            Assert.Empty(context.Insaatlar);
+        }
+
+        // TEST 14: InsaatSil olmayan id basarisiz olmali
+        [Fact]
+        public void InsaatSil_OlmayanId_BasarisizOlmali()
+        {
+            var context = SahteVeritabaniOlustur();
+            var controller = new InsaatController(context);
+
+            var sonuc = controller.InsaatSil(99999);
+
+            Assert.IsType<JsonResult>(sonuc);
+        }
+
+        // TEST 15: InsaatEkle gecerli veriyle basarili eklenmeli
+        [Fact]
+        public void InsaatEkle_GecerliVeri_BasariliEklenmeli()
+        {
+            var context = SahteVeritabaniOlustur();
+            var controller = new InsaatController(context);
+
+            var yeniInsaat = new OtekSistem.Models.Insaat
+            {
+                InsaatAdi = "Yeni Bina",
+                InsaatTuru = "Konut",
+                Aciklama = "Test bina",
+                KoordinatX = 32.85,
+                KoordinatY = 39.92,
+                DurumId = 1,
+                TamamlanmaYuzdesi = 0
+            };
+
+            var sonuc = controller.InsaatEkle(yeniInsaat, new List<int>(), new List<int>());
+
+            Assert.IsType<JsonResult>(sonuc);
+            Assert.Single(context.Insaatlar);
+            Assert.Equal("Yeni Bina", context.Insaatlar.First().InsaatAdi);
+        }
     }
 }
